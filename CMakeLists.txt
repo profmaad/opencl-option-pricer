@@ -17,7 +17,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 file(GLOB OPENCL_KERNELS kernels/*.cl)
 
-add_custom_command(OUTPUT opencl_kernels.o COMMAND clcc -c -o opencl_kernels.o -c ${OPENCL_KERNELS})
+add_custom_command(OUTPUT opencl_kernels.o COMMAND clcc -I../kernels/ -c -o opencl_kernels.o -c ${OPENCL_KERNELS} DEPENDS ${OPENCL_KERNELS})
 
 add_executable(opencl_option_pricer src/main.cpp opencl_kernels.o)
 target_link_libraries(opencl_option_pricer ${OPENCL_LIBS} ${STDCL_LIBS})
