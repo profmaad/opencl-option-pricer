@@ -13,6 +13,7 @@ int main(int argc, char **argv)
 	float maturity = 3.0;
 	float volatility = 0.3;
 	float risk_free_rate = 0.05;
+	float steps = 50;
 
 	stdcl_init();
 
@@ -23,7 +24,7 @@ int main(int argc, char **argv)
 
 	clopen(context, NULL, CLLD_NOW);
 	
-	cl_kernel kernel = clsym(context, NULL, "european", 0);
+	cl_kernel kernel = clsym(context, NULL, "geometric_asian", 0);
 	if (!kernel)
 	{
 		std::cerr << "error: kernel = " << kernel << std::endl;
@@ -42,7 +43,7 @@ int main(int argc, char **argv)
 	clndrange_t index_range = clndrange_init1d(0, 1, 1);
 
 	/* non-blocking fork of the OpenCL kernel to execute on the GPU */
-	clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, start_price, strike_price, maturity, volatility, risk_free_rate, prices);
+	clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, start_price, strike_price, maturity, volatility, risk_free_rate, steps, prices);
 
 	/* non-blocking sync vector c to host memory (copy back to host) */
 	clmsync(context, devnum,  prices, CL_MEM_HOST|CL_EVENT_NOWAIT);
@@ -59,6 +60,7 @@ int main(int argc, char **argv)
 	printf("\tMaturity:       %10.3f years\n", maturity);
 	printf("\tVolatility:     %10.5f %%\n", volatility*100);
 	printf("\tRisk-free rate: %10.5f %%\n", risk_free_rate*100);
+	printf("\tSteps:          %10d\n", steps);
 
 	std::cout << std::endl << std::endl << "Results:" << std::endl;
 	printf("\tCall price:     %10.5f HKD\n", prices[0]);
