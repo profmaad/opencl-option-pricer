@@ -15,7 +15,7 @@ float european_d2(float d1, float volatility, float maturity)
 	return d2;
 }
 
-__kernel void european(__global float start_price, __global float strike_price, __global float maturity, __global float volatility, __global float risk_free_rate, __global float *prices)
+__kernel void european(float start_price, float strike_price, float maturity, float volatility, float risk_free_rate, __global float *prices)
 {
 	float d1 = european_d1(start_price, strike_price, maturity, volatility, risk_free_rate);
 	float d2 = european_d2(d1, volatility, maturity);
