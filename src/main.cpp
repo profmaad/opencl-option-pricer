@@ -24,17 +24,33 @@ int main(int argc, char **argv)
 
 	clopen(context, NULL, CLLD_NOW);
 	
-	cl_kernel kernel = clsym(context, NULL, "geometric_asian", 0);
+	cl_kernel kernel = clsym(context, NULL, "geometric_basket", 0);
 	if (!kernel)
 	{
 		std::cerr << "error: kernel = " << kernel << std::endl;
 		return 1;
 	}
+
+	/* allocate structures for basket option inputs */
+	cl_float *start_prices = (float*)clmalloc(context, 2*sizeof(cl_float), 0);
+	start_prices[0] = 100; start_prices[1] = 90;
+
+	cl_float *asset_volatilities = (float*)clmalloc(context, 2*sizeof(cl_float), 0);
+	asset_volatilities[0] = 0.2; asset_volatilities[1] = 0.15;
+
+	cl_float *correlations = (float*)clmalloc(context, 2*2*sizeof(cl_float), 0);
+	correlations[0] = 1; correlations[1] = 0.8;
+	correlations[2] = 0.8; correlations[3] = 1;
+
+	/* non-blocking sync vector c to host memory (copy back to host) */
+	clmsync(context, devnum, start_prices, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+	clmsync(context, devnum, asset_volatilities, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+	clmsync(context, devnum, correlations, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 	
 	/* allocate OpenCL device-sharable memory */
 	cl_float* prices = (float*)clmalloc(context, 2*sizeof(cl_float), 0);
 	
-	for(int i=0; i < 2; i++)
+	for(int i = 0; i < 2; i++)
 	{
 		prices[i] = 0.0f;
 	}
@@ -43,7 +59,7 @@ int main(int argc, char **argv)
 	clndrange_t index_range = clndrange_init1d(0, 1, 1);
 
 	/* non-blocking fork of the OpenCL kernel to execute on the GPU */
-	clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, start_price, strike_price, maturity, volatility, risk_free_rate, steps, prices);
+	clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, 2, start_prices, strike_price, maturity, asset_volatilities, risk_free_rate, correlations, prices);
 
 	/* non-blocking sync vector c to host memory (copy back to host) */
 	clmsync(context, devnum,  prices, CL_MEM_HOST|CL_EVENT_NOWAIT);
