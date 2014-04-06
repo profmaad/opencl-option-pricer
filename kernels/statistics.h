@@ -31,7 +31,7 @@ void initialize_running_variance(unsigned int *iteration, float *a, float *q)
 }
 void update_running_variance(unsigned int *iteration, float *a, float *q, float sample)
 {
-	*iteration++;
+	*iteration += 1;
 
 	float new_a = *a + (sample - *a) / *iteration;
 
