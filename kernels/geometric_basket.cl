@@ -1,7 +1,7 @@
 /* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
 
 # include "stdnormal.h"
-# include "means.h"
+# include "statistics.h"
 
 float geometric_basket_volatility(unsigned int number_of_assets, float *asset_volatilities, float *correlations)
 {
