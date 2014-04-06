@@ -21,26 +21,24 @@ int main(int argc, char **argv)
 
 	clopen(context, NULL, CLLD_NOW);
 	
-	cl_kernel kernel = clsym(context, NULL, "random_kernel", 0);
+	cl_kernel kernel = clsym(context, NULL, "random_test", 0);
 	if (!kernel)
 	{
 		std::cerr << "error: kernel = " << kernel << std::endl;
 		return 1;
 	}
 
-	unsigned int work_size = 10000;
+	unsigned int work_size = 1000000;
 	unsigned int workers = 16;
 
-	cl_uint *seed1 = (unsigned int*)clmalloc(context, 4*workers*sizeof(cl_uint), 0);
-	cl_uint *seed2 = (unsigned int*)clmalloc(context, 4*workers*sizeof(cl_uint), 0);
-	for(int i = 0; i < 4*workers; i++)
+	cl_uint2 *seeds = (cl_uint2*)clmalloc(context, workers*sizeof(cl_uint2), 0);
+	for(int i = 0; i < workers; i++)
 	{
-		seed1[i] = rand();
-		seed2[i] = rand();
+		seeds[i].x = rand();
+		seeds[i].y = rand();
 	}
 
-	clmsync(context, devnum, seed1, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
-	clmsync(context, devnum, seed2, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+	clmsync(context, devnum, seeds, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 	
 	/* allocate OpenCL device-sharable memory */
 	cl_float* mean = (float*)clmalloc(context, workers*sizeof(cl_float), 0);
@@ -52,11 +50,14 @@ int main(int argc, char **argv)
 		variance[i] = 42.0f;
 	}
 
+	clmsync(context, devnum, mean, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+	clmsync(context, devnum, variance, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+
 	/* define the computational domain and workgroup size */
 	clndrange_t index_range = clndrange_init1d(0, workers, 2);
 
 	/* non-blocking fork of the OpenCL kernel to execute on the GPU */
-	clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, work_size, seed1, seed2, mean, variance);
+	clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, work_size, seeds, mean, variance);
 
 	/* non-blocking sync vector c to host memory (copy back to host) */
 	clmsync(context, devnum,  mean, CL_MEM_HOST|CL_EVENT_NOWAIT);
@@ -73,8 +74,7 @@ int main(int argc, char **argv)
 		printf("Worker %d:\n\tMean:     %10.5f\n\tVariance: %10.5f\n", i, mean[i], variance[i]);
 	}
 
-	clfree(seed1);
-	clfree(seed2);
+	clfree(seeds);
 	clfree(mean);
 	clfree(variance);
 
