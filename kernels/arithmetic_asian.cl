@@ -70,3 +70,134 @@ __kernel void arithmetic_asian_no_cv(unsigned int direction, float start_price, 
 	results[tid].x = running_mean;
 	results[tid].y = finalize_running_variance(&statistics_iteration, &running_mean, &running_m2);
 }
+
+// results (cv):
+// arithmetic mean (running per path)
+// geometric mean (running per path)
+// -> payoff (per path)
+// -> cv payoff (per path)
+//    -> value (per path)
+//    -> cv value (per path)
+//       -> value mean (running total)
+//       -> cv value mean (running total)
+//       -> (cv value * value) mean (running total)
+// write back to host:
+// * value
+// * cv value
+// * value mean (partial of total solution)
+// * cv value mean (partial of total solution)
+// * (cv value * value) mean (partial of total solution)
+// calculate on host:
+// * value mean (total solution)
+// * cv value mean (total solution)
+// * (cv value * value) mean (total solution)
+// * cv value variance
+// * covariance
+// * theta
+// * z values
+// * z mean
+// * z stddev
+
+// CV algorithm;
+// for each path:
+//   for each sample:
+//     generate sample
+//     update running path arith mean price -> value
+//     update running path geom mean price -> cv_value
+//   update running mean, running variance for arith path price -> E_i(X), Var_i(X)
+//   update running mean, running variance for geom path price -> E_i(Y), Var_i(Y)
+//   update running mean for (arith * geom) path price -> E_i(XY)
+//  finalize variance for arith path price -> Var_i(X)
+//  finalize variance for geom path price -> Var_i(Y)
+// On host:
+// calculate total mean of arith path price -> E(X)
+// calculate total mean of geom path price -> E(Y)
+// calculate total mean of (arith * geom) path price -> E(XY)
+// calculate total variance of arith path price -> Var(X)
+// calculate total variance of geom path price -> Var(Y)
+// calculate total covariance of X,Y as Cov(X,Y) = E(XY) - E(X)*E(Y)
+// set E(Z) = E(X)
+// calculate theta as \theta = Cov(X,Y)/Var(Y)
+// calculate total variance of Z as Var(Z) = Var(X) - 2\theta*Cov(X,Y) + \theta^2*Var(Y)
+// result is E(Z),Var(Z)
+
+__kernel void arithmetic_asian_geometric_cv(unsigned int direction, float start_price, float strike_price, float maturity, float volatility, float risk_free_rate, unsigned int averaging_steps, unsigned int total_number_of_paths, unsigned int adjust_strike, __global uint2 *seeds, __global float2 *arithmetic_results, __global float2 *geometric_results, __global float *arithmetic_geometric_means)
+{
+	// get details on worker setup
+	unsigned int tid = get_global_id(0);
+	unsigned int worker_count = get_global_size(0);
+
+	// calculate work item size
+	unsigned int number_of_paths = total_number_of_paths/worker_count;
+
+	// setup PRNG
+	uint2 seed = seeds[tid];
+
+	uniform_int_prng_state base_state;
+	initialize_uniform_int_prng(&base_state, seed);
+	stdnormal_float_prng_state prng_state;
+	initialize_stdnormal_float_prng(&prng_state, &base_state);
+
+	// setup running mean and variance calculation
+	unsigned int arithmetic_iterations;
+	float running_arithmetic_mean;
+	float running_arithmetic_m2;
+	initialize_running_variance(&arithmetic_iterations, &running_arithmetic_mean, &running_arithmetic_m2);
+
+	unsigned int geometric_iterations;
+	float running_geometric_mean;
+	float running_geometric_m2;
+	initialize_running_variance(&geometric_iterations, &running_geometric_mean, &running_geometric_m2);
+
+	unsigned int arithmetic_geometric_iterations;
+	float running_arithmetic_geometric_mean;
+	float running_arithmetic_geometric_m2;
+	initialize_running_variance(&arithmetic_geometric_iterations, &running_arithmetic_geometric_mean, &running_arithmetic_geometric_m2);
+
+	// calculate fixed monte carlo parameters
+	float delta_t = maturity/((float)averaging_steps);
+	float drift = exp((risk_free_rate - 0.5*volatility*volatility) * delta_t);
+	float path_mean_sample_factor = 1.0f/(float)averaging_steps;
+	float discounting_factor = exp(-risk_free_rate * maturity);
+
+	for(int path = 0; path < number_of_paths; path++)
+	{
+		float path_arithmetic_mean = 0;
+		float path_geometric_mean = 0;
+
+		float growth_factor = drift * exp(volatility * sqrt(delta_t) * stdnormal_float_random(&prng_state));
+		float asset_price = start_price;
+		
+		for(int i = 0; i < averaging_steps; i++)
+		{
+			growth_factor = drift * exp(volatility * sqrt(delta_t) * stdnormal_float_random(&prng_state));
+			asset_price *= growth_factor;
+			path_arithmetic_mean += asset_price*path_mean_sample_factor;
+			path_geometric_mean += log(asset_price)*path_mean_sample_factor;
+		}
+
+		path_geometric_mean = exp(path_geometric_mean);
+
+		// calculate payoff - save variables...
+		path_arithmetic_mean = (direction == CALL ? max(path_arithmetic_mean - strike_price, 0) : max(strike_price - path_arithmetic_mean, 0));
+		path_geometric_mean = (direction == CALL ? max(path_geometric_mean - strike_price, 0) : max(strike_price - path_geometric_mean, 0));
+
+		// calculate discounted value
+		path_arithmetic_mean *= discounting_factor;
+		path_geometric_mean *= discounting_factor;
+
+
+		// update sample statistics with new path value
+		update_running_variance(&arithmetic_iterations, &running_arithmetic_mean, &running_arithmetic_m2, path_arithmetic_mean);
+		update_running_variance(&geometric_iterations, &running_geometric_mean, &running_geometric_m2, path_geometric_mean);
+		update_running_variance(&arithmetic_geometric_iterations, &running_arithmetic_geometric_mean, &running_arithmetic_geometric_m2, path_arithmetic_mean * path_geometric_mean);
+	}
+
+	arithmetic_results[tid].x = running_arithmetic_mean;
+	arithmetic_results[tid].y = finalize_running_variance(&arithmetic_iterations, &running_arithmetic_mean, &running_arithmetic_m2);
+
+	geometric_results[tid].x = running_geometric_mean;
+	geometric_results[tid].y = finalize_running_variance(&geometric_iterations, &running_geometric_mean, &running_geometric_m2);
+
+	arithmetic_geometric_means[tid] = running_arithmetic_geometric_mean;
+}
