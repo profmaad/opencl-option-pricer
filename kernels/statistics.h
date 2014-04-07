@@ -23,24 +23,24 @@ float geometric_mean(unsigned int n, float *values)
 	return exp(sum);
 }
 
-void initialize_running_variance(unsigned int *iteration, float *a, float *q)
+void initialize_running_variance(unsigned int *iteration, float *mean, float *m2)
 {
 	*iteration = 0;
-	*a = 0;
-	*q = 0;
+	*mean = 0;
+	*m2 = 0;
 }
-void update_running_variance(unsigned int *iteration, float *a, float *q, float sample)
+void update_running_variance(unsigned int *iteration, float *mean, float *m2, float sample)
 {
 	*iteration += 1;
 
-	float new_a = *a + (sample - *a) / *iteration;
+	float new_mean = *mean + (sample - *mean) / *iteration;
 
-	float new_q = *q + (sample - *a) * (sample - new_a);
+	float new_m2 = *m2 + (sample - *mean) * (sample - new_mean);
 
-	*a = new_a;
-	*q = new_q;
+	*mean = new_mean;
+	*m2 = new_m2;
 }
-float finalize_running_variance(unsigned int *iteration, float *a, float *q)
+float finalize_running_variance(unsigned int *iteration, float *mean, float *m2)
 {
-	return *q / *iteration;
+	return *m2 / ((*iteration)-1);
 }

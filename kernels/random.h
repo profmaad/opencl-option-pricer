@@ -1,6 +1,6 @@
 /* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
 
-# include <mwc64x/mwc64x.cl>
+# include <mwc64x/mwc64x/mwc64x_rng.cl>
 
 # define M_PI_F       3.14159274101257f
 # define UINT_MAX     0xffffffff

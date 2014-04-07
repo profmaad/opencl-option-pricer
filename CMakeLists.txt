@@ -25,3 +25,6 @@ target_link_libraries(opencl_option_pricer ${OPENCL_LIBS} ${STDCL_LIBS})
 
 add_executable(random_test src/random.cpp opencl_kernels.o)
 target_link_libraries(random_test ${OPENCL_LIBS} ${STDCL_LIBS})
+
+add_executable(monte_carlo src/monte_carlo.cpp opencl_kernels.o)
+target_link_libraries(monte_carlo ${OPENCL_LIBS} ${STDCL_LIBS})
