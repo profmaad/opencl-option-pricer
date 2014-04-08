@@ -2,17 +2,27 @@
 
 # include "stdnormal.h"
 
-float geometric_asian_volatility(float original_volatility, float steps)
+float geometric_asian_volatility(float original_volatility, unsigned int averaging_steps)
 {
-	float volatility = original_volatility*sqrt(((steps+1)*(2*steps+1))/(6*steps*steps));
+	float volatility = original_volatility*sqrt(((averaging_steps+1.0f)*(2*averaging_steps+1.0f))/(6.0f*averaging_steps*averaging_steps));
 
 	return volatility;
 }
-float geometric_asian_mu(float risk_free_rate, float steps, float original_volatility, float volatility)
+float geometric_asian_mu(float risk_free_rate, unsigned int averaging_steps, float original_volatility, float volatility)
 {
-	float mu = (risk_free_rate - 0.5 * original_volatility*original_volatility)*((steps+1)/(2*steps)) + 0.5 * volatility*volatility;
+	float mu = (risk_free_rate - 0.5 * original_volatility*original_volatility)*((averaging_steps+1.0f)/(2.0f*averaging_steps)) + 0.5 * volatility*volatility;
 
 	return mu;
+}
+
+float geometric_asian_expected_underlying_price_at_maturity(float start_price, float maturity, float original_volatility, float risk_free_rate, unsigned int averaging_steps)
+{
+	float volatility = geometric_asian_volatility(original_volatility, averaging_steps);
+	float mu = geometric_asian_mu(risk_free_rate, averaging_steps, original_volatility, volatility);
+
+	float price = exp(mu * maturity) * start_price;
+
+	return price;
 }
 
 float geometric_asian_d1(float start_price, float strike_price, float maturity, float volatility, float mu)
@@ -28,10 +38,10 @@ float geometric_asian_d2(float d1, float volatility, float maturity)
 	return d2;
 }
 
-__kernel void geometric_asian(float start_price, float strike_price, float maturity, float original_volatility, float risk_free_rate, float steps, __global float *prices)
+__kernel void geometric_asian(float start_price, float strike_price, float maturity, float original_volatility, float risk_free_rate, unsigned int averaging_steps, __global float *prices)
 {
-	float volatility = geometric_asian_volatility(original_volatility, steps);
-	float mu = geometric_asian_mu(risk_free_rate, steps, original_volatility, volatility);
+	float volatility = geometric_asian_volatility(original_volatility, averaging_steps);
+	float mu = geometric_asian_mu(risk_free_rate, averaging_steps, original_volatility, volatility);
 
 	float d1 = geometric_asian_d1(start_price, strike_price, maturity, volatility, mu);
 	float d2 = geometric_asian_d2(d1, volatility, maturity);

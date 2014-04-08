@@ -3,6 +3,8 @@
 # include <random.h>
 # include <statistics.h>
 
+# include "geometric_asian.cl"
+
 // results (no cv):
 // arithmetic mean (running per path)
 // -> payoff (per path)
@@ -12,6 +14,19 @@
 
 # define CALL 0
 # define PUT 1
+
+float arithmetic_asian_expected_underlying_price_at_maturity(float start_price, float risk_free_rate, float maturity)
+{
+	return exp(risk_free_rate * maturity) * start_price;
+}
+
+float arithmetic_asian_geometric_cv_adjusted_strike(float start_price, float strike_price, float maturity, float volatility, float risk_free_rate, unsigned int averaging_steps)
+{
+	float geometric_expectation = geometric_asian_expected_underlying_price_at_maturity(start_price, maturity, volatility, risk_free_rate, averaging_steps);
+	float arithmetic_expectation = arithmetic_asian_expected_underlying_price_at_maturity(start_price, risk_free_rate, maturity);
+
+	return strike_price + geometric_expectation - arithmetic_expectation;
+}
 
 __kernel void arithmetic_asian_no_cv(unsigned int direction, float start_price, float strike_price, float maturity, float volatility, float risk_free_rate, unsigned int averaging_steps, unsigned int total_number_of_paths, __global uint2 *seeds, __global float2 *results)
 {
@@ -160,6 +175,8 @@ __kernel void arithmetic_asian_geometric_cv(unsigned int direction, float start_
 	float path_mean_sample_factor = 1.0f/(float)averaging_steps;
 	float discounting_factor = exp(-risk_free_rate * maturity);
 
+	float adjusted_strike_price = (adjust_strike == 0 ? strike_price : arithmetic_asian_geometric_cv_adjusted_strike(start_price, strike_price, maturity, volatility, risk_free_rate, averaging_steps));
+
 	for(int path = 0; path < number_of_paths; path++)
 	{
 		float path_arithmetic_mean = 0;
@@ -179,8 +196,8 @@ __kernel void arithmetic_asian_geometric_cv(unsigned int direction, float start_
 		path_geometric_mean = exp(path_geometric_mean);
 
 		// calculate payoff - save variables...
-		path_arithmetic_mean = (direction == CALL ? max(path_arithmetic_mean - strike_price, 0) : max(strike_price - path_arithmetic_mean, 0));
-		path_geometric_mean = (direction == CALL ? max(path_geometric_mean - strike_price, 0) : max(strike_price - path_geometric_mean, 0));
+		path_arithmetic_mean = (direction == CALL ? max(path_arithmetic_mean - adjusted_strike_price, 0) : max(adjusted_strike_price - path_arithmetic_mean, 0));
+		path_geometric_mean = (direction == CALL ? max(path_geometric_mean - adjusted_strike_price, 0) : max(adjusted_strike_price - path_geometric_mean, 0));
 
 		// calculate discounted value
 		path_arithmetic_mean *= discounting_factor;

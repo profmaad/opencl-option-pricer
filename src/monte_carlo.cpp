@@ -35,6 +35,7 @@ int main(int argc, char **argv)
 	float risk_free_rate = 0.05;
 	unsigned int averaging_steps = 50;
 	bool use_geometric_control_variate = true;
+	unsigned int use_adjusted_strike = 1;
 
 	unsigned int total_number_of_paths = 100000;
 	unsigned int workers = 16;
@@ -134,7 +135,7 @@ int main(int argc, char **argv)
 	/* non-blocking fork of the OpenCL kernel to execute on the GPU */
 	if(use_geometric_control_variate)
 	{
-		clforka(context, devnum, kernel_geometric_cv, &index_range, CL_EVENT_NOWAIT, direction, start_price, strike_price, maturity, volatility, risk_free_rate, averaging_steps, total_number_of_paths, 0, seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
+		clforka(context, devnum, kernel_geometric_cv, &index_range, CL_EVENT_NOWAIT, direction, start_price, strike_price, maturity, volatility, risk_free_rate, averaging_steps, total_number_of_paths, use_adjusted_strike, seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
 	}
 	else
 	{	
@@ -267,15 +268,15 @@ int main(int argc, char **argv)
 		printf("\tTheta:     %10.5f\n", theta);
 
 		printf("\n");
-		printf("\tMean:     %10.5f\n", total_mean);
-		printf("\tVariance: %10.5f\n", total_variance);
-		printf("\tStdDev:   %10.5f\n", sqrt(total_variance));
+		printf("\tMean:      %10.5f\n", total_mean);
+		printf("\tVariance:  %10.5f\n", total_variance);
+		printf("\tStdDev:    %10.5f\n", sqrt(total_variance));
 
 
 		float confidence_interval_lower = total_mean - 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
 		float confidence_interval_upper = total_mean + 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
-		printf("\tCI:     [ %10.7f,\n\t          %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
-		printf("\tCI size:  %10.7f\n", confidence_interval_upper-confidence_interval_lower);
+		printf("\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
+		printf("\tCI size:   %10.7f\n", confidence_interval_upper-confidence_interval_lower);
 
 		clfree(arithmetic_results);
 		clfree(geometric_results);
@@ -310,14 +311,14 @@ int main(int argc, char **argv)
 		float total_variance = ((float)paths_per_worker - 1.0f)/((float)total_number_of_paths - 1.0f) * (sum_of_variances + (((float)paths_per_worker * ((float)workers - 1.0f))/((float)paths_per_worker-1.0f) * variances_variance));
 
 		printf("\nTotal population statistics:\n");
-		printf("\tMean:     %10.5f\n", total_mean);
-		printf("\tVariance: %10.5f\n", total_variance);
-		printf("\tStdDev:   %10.5f\n", sqrt(total_variance));
+		printf("\tMean:      %10.5f\n", total_mean);
+		printf("\tVariance:  %10.5f\n", total_variance);
+		printf("\tStdDev:    %10.5f\n", sqrt(total_variance));
 
 		float confidence_interval_lower = total_mean - 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
 		float confidence_interval_upper = total_mean + 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
-		printf("\tCI:     [ %10.7f,\n\t          %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
-		printf("\tCI size:  %10.7f\n", confidence_interval_upper-confidence_interval_lower);
+		printf("\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
+		printf("\tCI size:   %10.7f\n", confidence_interval_upper-confidence_interval_lower);
 
 		clfree(results);
 	}
