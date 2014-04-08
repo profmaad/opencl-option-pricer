@@ -1,5 +1,8 @@
 /* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
 
+# ifndef OPENCL_STATISTICS_H
+# define OPENCL_STATISTICS_H
+
 float arithmetic_mean(unsigned int n, float *values)
 {
 	float mean = 0.0;
@@ -44,3 +47,5 @@ float finalize_running_variance(unsigned int *iteration, float *mean, float *m2)
 {
 	return *m2 / ((*iteration)-1);
 }
+
+# endif /*OPENCL_STATISTICS_H*/

@@ -1,5 +1,9 @@
 // taken from NVidia Black Scholes OpenCL example
 // here: https://developer.nvidia.com/opencl
+
+# ifndef OPENCL_STDNORMAL_H
+# define OPENCL_STDNORMAL_H
+
 float stdnormal_cdf(float x)
 {
 	const float       A1 = 0.31938153f;
@@ -20,3 +24,5 @@ float stdnormal_cdf(float x)
 
 	return cdf;
 }
+
+# endif /*OPENCL_STDNORMAL_H*/
