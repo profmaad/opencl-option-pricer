@@ -38,6 +38,17 @@ float geometric_basket_start_price(unsigned int number_of_assets, float *start_p
 	return geometric_mean(number_of_assets, start_prices);
 }
 
+float geometric_basket_expected_underlying_price_at_maturity(unsigned int number_of_assets, float *start_prices, float maturity, float *asset_volatilities, float risk_free_rate, float *correlations)
+{
+	float start_price = geometric_basket_start_price(number_of_assets, start_prices);
+	float volatility = geometric_basket_volatility(number_of_assets, asset_volatilities, correlations);
+	float mu = geometric_basket_mu(number_of_assets, risk_free_rate, asset_volatilities, volatility);
+
+	float price = exp(mu * maturity) * start_price;
+
+	return price;
+}
+
 float geometric_basket_d1(float start_price, float strike_price, float maturity, float volatility, float mu)
 {
 	float d1 = (log(start_price/strike_price) + (mu + 0.5 * volatility*volatility) * maturity)/(volatility * sqrt(maturity));

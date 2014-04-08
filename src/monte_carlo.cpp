@@ -122,8 +122,8 @@ int main(int argc, char **argv)
 {
 // problem definition
 	OptionType type = Basket_Arithmetic;
-	OptionDirection direction = Call;
-	ControlVariate control_variate = None;
+	OptionDirection direction = Put;
+	ControlVariate control_variate = Geometric_AdjustedStrike;
 	unsigned int number_of_assets = NUMBER_OF_ASSETS;
 	float start_prices[NUMBER_OF_ASSETS] = {100.0, 90.0, 110.0};
 	float strike_price = 100.0;
@@ -156,9 +156,11 @@ int main(int argc, char **argv)
 	case Geometric:
 		use_geometric_control_variate = true;
 		use_adjusted_strike = 0;
+		break;
 	case Geometric_AdjustedStrike:
 		use_geometric_control_variate = true;
 		use_adjusted_strike = 1;
+		break;
 	}
 
 	// calculate cholesky decomposition of asset correlation matrix (needed for generation of correlated random numbers)
@@ -249,8 +251,6 @@ int main(int argc, char **argv)
 	printf("\tWorkers:        %10d\n", workers);
 	printf("\tP.p.W.:         %10d\n", paths_per_worker);
 
-	printf("\n\nRunning...\n");
-
 	srand(time(NULL));
 
 	stdcl_init();
@@ -274,6 +274,7 @@ int main(int argc, char **argv)
 		std::cerr << "error: kernel = " << kernel << " for kernel_sym = " << kernel_sym << std::endl;
 		return 1;
 	}
+	printf("\n\nRunning kernel %s...\n", kernel_sym);
 	free(kernel_sym);
 
 	cl_uint2 *seeds = generate_seeds(context, workers);
@@ -351,7 +352,8 @@ int main(int argc, char **argv)
 			clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, direction, start_prices[0], strike_price, maturity, volatilities[0], risk_free_rate, averaging_steps, total_number_of_paths, use_adjusted_strike, seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
 			break;
 		case Basket_Arithmetic:
-			clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, direction, number_of_assets, cl_start_prices, strike_price, maturity, cl_volatilities, risk_free_rate, cl_correlations, cl_correlations_cholesky, total_number_of_paths, seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
+			clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, direction, number_of_assets, cl_start_prices, strike_price, maturity, cl_volatilities, risk_free_rate, cl_correlations, cl_correlations_cholesky, total_number_of_paths, use_adjusted_strike, seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
+			break;
 		}
 	}
 	else
@@ -363,6 +365,7 @@ int main(int argc, char **argv)
 			break;
 		case Basket_Arithmetic:
 			clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, direction, number_of_assets, cl_start_prices, strike_price, maturity, cl_volatilities, risk_free_rate, cl_correlations, cl_correlations_cholesky, total_number_of_paths, seeds, results);
+			break;
 		}
 	}
 
