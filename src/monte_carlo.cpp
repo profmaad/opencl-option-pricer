@@ -10,6 +10,9 @@
 
 # include <stdcl.h>
 
+# include "matrix.h"
+# include "statistics.h"
+# include "statistics_opencl.h"
 
 cl_uint2* generate_seeds(CLCONTEXT* context, unsigned int workers)
 {
@@ -374,6 +377,16 @@ int main(int argc, char **argv)
                 // calculate total variance of Z as Var(Z) = Var(X) - 2\theta*Cov(X,Y) + \theta^2*Var(Y)
                 // result is E(Z),Var(Z)
 
+		// calculate total variance from subsample variance:
+		// E(X) = (SUM E(X_i))/n
+		// Var(E(X)) = (SUM (E(X_i) - E(X))^2)/n
+		// Var(X) = (k-1)/(gk-1) * (SUM Var(X_i) + (k(g-1))/(k-1) * Var(E(X)));
+		// Complexity: O(3n)
+
+		// calculate total mean from subsample mean:
+		// E(X) = 1/workers * (SUM E(X_i))
+		// Complexity: O(n)
+
 		float arithmetic_variances_mean = 0.0;
 		float geometric_variances_mean = 0.0;
 		for(int i = 0; i < workers; i++)
@@ -413,6 +426,14 @@ int main(int argc, char **argv)
 		}
 		float total_arithmetic_variance = ((float)paths_per_worker - 1.0f)/((float)total_number_of_paths - 1.0f) * (sum_of_arithmetic_variances + (((float)paths_per_worker * ((float)workers - 1.0f))/((float)paths_per_worker-1.0f) * arithmetic_variances_variance));
 		float total_geometric_variance = ((float)paths_per_worker - 1.0f)/((float)total_number_of_paths - 1.0f) * (sum_of_geometric_variances + (((float)paths_per_worker * ((float)workers - 1.0f))/((float)paths_per_worker-1.0f) * geometric_variances_variance));
+
+		float total_arithmetic_mean_check; float total_arithmetic_variance_check;
+		float total_geometric_mean_check; float total_geometric_variance_check;
+		float total_arithmetic_geometric_mean_check;
+
+		population_statistics_from_subsample_statistics(workers, paths_per_worker, arithmetic_results, &total_arithmetic_mean_check, &total_arithmetic_variance_check);
+		population_statistics_from_subsample_statistics(workers, paths_per_worker, geometric_results, &total_geometric_mean_check, &total_geometric_variance_check);
+		total_arithmetic_geometric_mean_check = population_mean_from_subsample_mean(workers, arithmetic_geometric_means);
 
                 // calculate total covariance of X,Y as Cov(X,Y) = E(XY) - E(X)*E(Y)
 		float total_covariance = total_arithmetic_geometric_mean - (total_arithmetic_mean * total_geometric_mean);
