@@ -1,5 +1,7 @@
 /* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
 
+# include <cmath>
+
 # include "statistics.h"
 
 float population_mean_from_subsample_mean(const unsigned int number_of_samples, const float *samples)
@@ -26,4 +28,12 @@ float population_variance_from_samples(const unsigned int number_of_samples, con
 	}
 
 	return result;
+}
+
+void confidence_interval_95percent(const unsigned int number_of_samples, const float mean, const float variance, float *lower, float *upper)
+{
+	float offset = 1.96 * (sqrt(variance)/sqrt(number_of_samples));
+
+	*lower = mean - offset;
+	*upper = mean + offset;
 }

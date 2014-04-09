@@ -387,53 +387,13 @@ int main(int argc, char **argv)
 		// E(X) = 1/workers * (SUM E(X_i))
 		// Complexity: O(n)
 
-		float arithmetic_variances_mean = 0.0;
-		float geometric_variances_mean = 0.0;
-		for(int i = 0; i < workers; i++)
-		{
-			arithmetic_variances_mean += arithmetic_results[i].x;
-			geometric_variances_mean += geometric_results[i].x;
-		}
-		arithmetic_variances_mean /= workers;
-		geometric_variances_mean /= workers;
-	
-		float arithmetic_variances_variance = 0.0;
-		float geometric_variances_variance = 0.0;
-		for(int i = 0; i < workers; i++)
-		{
-			arithmetic_variances_variance += (arithmetic_results[i].x - arithmetic_variances_mean)*(arithmetic_results[i].x - arithmetic_variances_mean);
-			geometric_variances_variance += (geometric_results[i].x - geometric_variances_mean)*(geometric_results[i].x - geometric_variances_mean);
-		}
-		arithmetic_variances_variance /= workers;
-		geometric_variances_variance /= workers;
+		float total_arithmetic_mean, total_arithmetic_variance;
+		float total_geometric_mean, total_geometric_variance;
+		float total_arithmetic_geometric_mean;
 
-		float total_arithmetic_mean = 0.0f;
-		float sum_of_arithmetic_variances = 0.0f;
-
-		float total_geometric_mean = 0.0f;
-		float sum_of_geometric_variances = 0.0f;
-
-		float total_arithmetic_geometric_mean = 0.0f;
-
-		for(int i = 0; i < workers; i++)
-		{
-			total_arithmetic_mean += arithmetic_results[i].x * (1.0f/(float)workers);
-			total_geometric_mean += geometric_results[i].x * (1.0f/(float)workers);
-			total_arithmetic_geometric_mean += arithmetic_geometric_means[i] * (1.0f/(float)workers);
-
-			sum_of_arithmetic_variances += arithmetic_results[i].y;
-			sum_of_geometric_variances += geometric_results[i].y;
-		}
-		float total_arithmetic_variance = ((float)paths_per_worker - 1.0f)/((float)total_number_of_paths - 1.0f) * (sum_of_arithmetic_variances + (((float)paths_per_worker * ((float)workers - 1.0f))/((float)paths_per_worker-1.0f) * arithmetic_variances_variance));
-		float total_geometric_variance = ((float)paths_per_worker - 1.0f)/((float)total_number_of_paths - 1.0f) * (sum_of_geometric_variances + (((float)paths_per_worker * ((float)workers - 1.0f))/((float)paths_per_worker-1.0f) * geometric_variances_variance));
-
-		float total_arithmetic_mean_check; float total_arithmetic_variance_check;
-		float total_geometric_mean_check; float total_geometric_variance_check;
-		float total_arithmetic_geometric_mean_check;
-
-		population_statistics_from_subsample_statistics(workers, paths_per_worker, arithmetic_results, &total_arithmetic_mean_check, &total_arithmetic_variance_check);
-		population_statistics_from_subsample_statistics(workers, paths_per_worker, geometric_results, &total_geometric_mean_check, &total_geometric_variance_check);
-		total_arithmetic_geometric_mean_check = population_mean_from_subsample_mean(workers, arithmetic_geometric_means);
+		population_statistics_from_subsample_statistics(workers, paths_per_worker, arithmetic_results, &total_arithmetic_mean, &total_arithmetic_variance);
+		population_statistics_from_subsample_statistics(workers, paths_per_worker, geometric_results, &total_geometric_mean, &total_geometric_variance);
+		total_arithmetic_geometric_mean = population_mean_from_subsample_mean(workers, arithmetic_geometric_means);
 
                 // calculate total covariance of X,Y as Cov(X,Y) = E(XY) - E(X)*E(Y)
 		float total_covariance = total_arithmetic_geometric_mean - (total_arithmetic_mean * total_geometric_mean);
@@ -446,6 +406,9 @@ int main(int argc, char **argv)
 
                 // calculate total variance of Z as Var(Z) = Var(X) - 2\theta*Cov(X,Y) + \theta^2*Var(Y)
 		float total_variance = total_arithmetic_variance - 2*theta*total_covariance + theta*theta*total_geometric_variance;
+
+		float confidence_interval_lower, confidence_interval_upper;
+		confidence_interval_95percent(total_number_of_paths, total_mean, total_variance, &confidence_interval_lower, &confidence_interval_upper);
 
 		printf("\nTotal population statistics:\n");
 
@@ -469,9 +432,6 @@ int main(int argc, char **argv)
 		printf("\tVariance:  %10.5f\n", total_variance);
 		printf("\tStdDev:    %10.5f\n", sqrt(total_variance));
 
-
-		float confidence_interval_lower = total_mean - 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
-		float confidence_interval_upper = total_mean + 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
 		printf("\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
 		printf("\tCI size:   %10.7f\n", confidence_interval_upper-confidence_interval_lower);
 
@@ -481,39 +441,17 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		// calculate statistics for total sample population
-		float variances_mean = 0.0;
-		for(int i = 0; i < workers; i++)
-		{
-			variances_mean += results[i].x;
-		}
-		variances_mean /= workers;
-	
-		float variances_variance = 0.0;
-		for(int i = 0; i < workers; i++)
-		{
-			variances_variance += (results[i].x - variances_mean)*(results[i].x - variances_mean);
-		}
-		variances_variance /= workers;
-	
-		float total_mean = 0.0f;
-		float sum_of_variances = 0.0f;
+		float total_mean, total_variance;
+		population_statistics_from_subsample_statistics(workers, paths_per_worker, results, &total_mean, &total_variance);
 
-		for(int i = 0; i < workers; i++)
-		{
-			total_mean += results[i].x * (1.0f/(float)workers);
-
-			sum_of_variances += results[i].y;
-		}
-		float total_variance = ((float)paths_per_worker - 1.0f)/((float)total_number_of_paths - 1.0f) * (sum_of_variances + (((float)paths_per_worker * ((float)workers - 1.0f))/((float)paths_per_worker-1.0f) * variances_variance));
+		float confidence_interval_lower, confidence_interval_upper;
+		confidence_interval_95percent(total_number_of_paths, total_mean, total_variance, &confidence_interval_lower, &confidence_interval_upper);
 
 		printf("\nTotal population statistics:\n");
 		printf("\tMean:      %10.5f\n", total_mean);
 		printf("\tVariance:  %10.5f\n", total_variance);
 		printf("\tStdDev:    %10.5f\n", sqrt(total_variance));
 
-		float confidence_interval_lower = total_mean - 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
-		float confidence_interval_upper = total_mean + 1.96*(sqrt(total_variance)/sqrt(total_number_of_paths));
 		printf("\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
 		printf("\tCI size:   %10.7f\n", confidence_interval_upper-confidence_interval_lower);
 
