@@ -53,67 +53,84 @@ cl_uint2* generate_seeds(CLCONTEXT* context, unsigned int workers)
 
 enum OptionType
 {
-	European,
+	European = 0,
 	Asian_Geometric,
 	Asian_Arithmetic,
 	Basket_Geometric,
-	Basket_Arithmetic
+	Basket_Arithmetic,
+
+	OptionType_SIZE
 };
 enum OptionDirection
 {
-	Call,
-	Put
+	Call = 0,
+	Put,
+
+	OptionDirection_SIZE
 };
 enum ControlVariate
 {
-	None,
+	None = 0,
 	Geometric,
-	Geometric_AdjustedStrike
+	Geometric_AdjustedStrike,
+
+	ControlVariate_SIZE
 };
 
-char* get_kernel_sym(OptionType type, ControlVariate control_variate)
+static const char *KERNEL_SYMBOLS[OptionType_SIZE][ControlVariate_SIZE] = { 
+	{"european", "european", "european"},
+	{"geometric_asian", "geometric_asian", "geometric_asian"},
+	{"arithmetic_asian_no_cv", "arithmetic_asian_geometric_cv", "arithmetic_asian_geometric_cv"},
+	{"geometric_basket", "geometric_basket", "geometric_basket"},
+	{"arithmetic_basket_no_cv", "arithmetic_basket_geometric_cv", "arithmetic_basket_geometric_cv"}
+};
+
+const char* get_kernel_sym(OptionType type, ControlVariate control_variate)
 {
-	std::string kernel_sym;
+	if(type >= OptionType_SIZE || control_variate >= ControlVariate_SIZE) { return NULL; }
+	else { return KERNEL_SYMBOLS[type][control_variate]; }
 
-	switch(type)
-	{
-	case European:
-		kernel_sym = "european";
-		break;
-	case Asian_Geometric:
-		kernel_sym = "geometric_asian";
-		break;
-	case Asian_Arithmetic:
-		switch(control_variate)
-		{
-		case None:
-			kernel_sym = "arithmetic_asian_no_cv";
-			break;
-		case Geometric:
-		case Geometric_AdjustedStrike:
-			kernel_sym = "arithmetic_asian_geometric_cv";
-			break;
-		}
-		break;
-	case Basket_Geometric:
-		kernel_sym = "geometric_basket";
-		break;
-	case Basket_Arithmetic:
-		switch(control_variate)
-		{
-		case None:
-			kernel_sym = "arithmetic_basket_no_cv";
-			break;
-		case Geometric:
-		case Geometric_AdjustedStrike:
-			kernel_sym = "arithmetic_basket_geometric_cv";
-			break;
-		}
-		break;
-	}
+	// std::string kernel_sym;
 
-	if(kernel_sym.length() == 0) { return NULL; }
-	else { return strdup(kernel_sym.c_str()); }
+	// switch(type)
+	// {
+	// case European:
+	// 	kernel_sym = "european";
+	// 	break;
+	// case Asian_Geometric:
+	// 	kernel_sym = "geometric_asian";
+	// 	break;
+	// case Asian_Arithmetic:
+	// 	switch(control_variate)
+	// 	{
+	// 	case None:
+	// 		kernel_sym = "arithmetic_asian_no_cv";
+	// 		break;
+	// 	case Geometric:
+	// 	case Geometric_AdjustedStrike:
+	// 		kernel_sym = "arithmetic_asian_geometric_cv";
+	// 		break;
+	// 	}
+	// 	break;
+	// case Basket_Geometric:
+	// 	kernel_sym = "geometric_basket";
+	// 	break;
+	// case Basket_Arithmetic:
+	// 	switch(control_variate)
+	// 	{
+	// 	case None:
+	// 		kernel_sym = "arithmetic_basket_no_cv";
+	// 		break;
+	// 	case Geometric:
+	// 	case Geometric_AdjustedStrike:
+	// 		kernel_sym = "arithmetic_basket_geometric_cv";
+	// 		break;
+	// 	}
+	// 	break;
+	// }
+
+	// if(kernel_sym.length() == 0) { return NULL; }
+	// else { return strdup(kernel_sym.c_str()); }
 }
 
 # define NUMBER_OF_ASSETS 3
@@ -121,7 +138,7 @@ char* get_kernel_sym(OptionType type, ControlVariate control_variate)
 int main(int argc, char **argv)
 {
 // problem definition
-	OptionType type = Asian_Arithmetic;
+	OptionType type = Basket_Arithmetic;
 	OptionDirection direction = Call;
 	ControlVariate control_variate = Geometric_AdjustedStrike;
 	unsigned int number_of_assets = NUMBER_OF_ASSETS;
@@ -147,20 +164,23 @@ int main(int argc, char **argv)
 	
 	bool use_geometric_control_variate = false;
 	unsigned int use_adjusted_strike = 0;
-	switch(control_variate)
+	if(type == Asian_Arithmetic || type == Basket_Arithmetic)
 	{
-	case None:
-		use_geometric_control_variate = false;
-		use_adjusted_strike = 0;
-		break;
-	case Geometric:
-		use_geometric_control_variate = true;
-		use_adjusted_strike = 0;
-		break;
-	case Geometric_AdjustedStrike:
-		use_geometric_control_variate = true;
-		use_adjusted_strike = 1;
-		break;
+		switch(control_variate)
+		{
+		case None:
+			use_geometric_control_variate = false;
+			use_adjusted_strike = 0;
+			break;
+		case Geometric:
+			use_geometric_control_variate = true;
+			use_adjusted_strike = 0;
+			break;
+		case Geometric_AdjustedStrike:
+			use_geometric_control_variate = true;
+			use_adjusted_strike = 1;
+			break;
+		}
 	}
 
 	// calculate cholesky decomposition of asset correlation matrix (needed for generation of correlated random numbers)
@@ -262,7 +282,7 @@ int main(int argc, char **argv)
 
 	clopen(context, NULL, CLLD_NOW);
 
-	char *kernel_sym = get_kernel_sym(type, control_variate);
+	const char *kernel_sym = get_kernel_sym(type, control_variate);
 	if(!kernel_sym)
 	{
 		std::cerr << "error: kernel_sym == NULL;" << std::endl;
@@ -275,7 +295,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	printf("\n\nRunning kernel %s...\n", kernel_sym);
-	free(kernel_sym);
+	//free(kernel_sym);
 
 	cl_uint2 *seeds = generate_seeds(context, workers);
 	clmsync(context, devnum, seeds, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
