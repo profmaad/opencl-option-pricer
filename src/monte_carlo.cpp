@@ -15,17 +15,6 @@
 # include "statistics_opencl.h"
 # include "opencl_utils.hpp"
 
-cl_uint2* generate_seeds(CLCONTEXT* context, unsigned int workers)
-{
-	cl_uint2 *seeds = (cl_uint2*)clmalloc(context, workers*sizeof(cl_uint2), 0);
-	for(int i = 0; i < workers; i++)
-	{
-		seeds[i].x = rand();
-		seeds[i].y = rand();
-	}
-	
-	return seeds;
-}
 
 enum OptionType
 {

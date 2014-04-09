@@ -18,4 +18,6 @@ To* opencl_memcpy(CLCONTEXT *context, unsigned int size, From *source)
 	return cl_mem;
 }
 
+cl_uint2* generate_seeds(CLCONTEXT* context, unsigned int number_of_workers);
+
 # endif /*OCLOP_OPENCL_UTILS_H*/
