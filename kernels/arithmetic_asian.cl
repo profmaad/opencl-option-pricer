@@ -15,15 +15,24 @@
 # define CALL 0
 # define PUT 1
 
-float arithmetic_asian_expected_underlying_price_at_maturity(float start_price, float risk_free_rate, float maturity)
+float arithmetic_asian_expected_underlying_price_at_maturity(float start_price, float risk_free_rate, float maturity, unsigned int averaging_steps)
 {
-	return exp(risk_free_rate * maturity) * start_price;
+	float factor = 1.0f/(float)averaging_steps * start_price;
+	float delta_t = maturity/(float)averaging_steps;
+
+	float sum = 0.0f;
+	for(int i = 1; i <= averaging_steps; i++)
+	{
+		sum += factor * exp(risk_free_rate * i*delta_t);
+	}
+
+	return sum;
 }
 
 float arithmetic_asian_geometric_cv_adjusted_strike(float start_price, float strike_price, float maturity, float volatility, float risk_free_rate, unsigned int averaging_steps)
 {
 	float geometric_expectation = geometric_asian_expected_underlying_price_at_maturity(start_price, maturity, volatility, risk_free_rate, averaging_steps);
-	float arithmetic_expectation = arithmetic_asian_expected_underlying_price_at_maturity(start_price, risk_free_rate, maturity);
+	float arithmetic_expectation = arithmetic_asian_expected_underlying_price_at_maturity(start_price, risk_free_rate, maturity, averaging_steps);
 
 	return strike_price + geometric_expectation - arithmetic_expectation;
 }
@@ -176,6 +185,7 @@ __kernel void arithmetic_asian_geometric_cv(unsigned int direction, float start_
 	float discounting_factor = exp(-risk_free_rate * maturity);
 
 	float adjusted_strike_price = (adjust_strike == 0 ? strike_price : arithmetic_asian_geometric_cv_adjusted_strike(start_price, strike_price, maturity, volatility, risk_free_rate, averaging_steps));
+	printf("Worker %d Adjusted Strike Price: %f\n", adjusted_strike_price);
 
 	for(int path = 0; path < number_of_paths; path++)
 	{

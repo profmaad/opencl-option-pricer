@@ -121,8 +121,8 @@ char* get_kernel_sym(OptionType type, ControlVariate control_variate)
 int main(int argc, char **argv)
 {
 // problem definition
-	OptionType type = Basket_Arithmetic;
-	OptionDirection direction = Put;
+	OptionType type = Asian_Arithmetic;
+	OptionDirection direction = Call;
 	ControlVariate control_variate = Geometric_AdjustedStrike;
 	unsigned int number_of_assets = NUMBER_OF_ASSETS;
 	float start_prices[NUMBER_OF_ASSETS] = {100.0, 90.0, 110.0};
