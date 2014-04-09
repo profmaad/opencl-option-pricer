@@ -10,51 +10,12 @@
 
 # include <stdcl.h>
 
+# include "types.h"
 # include "matrix.h"
 # include "statistics.h"
 # include "statistics_opencl.h"
 # include "opencl_utils.hpp"
-
-
-enum OptionType
-{
-	European = 0,
-	Asian_Geometric,
-	Asian_Arithmetic,
-	Basket_Geometric,
-	Basket_Arithmetic,
-
-	OptionType_SIZE
-};
-enum OptionDirection
-{
-	Call = 0,
-	Put,
-
-	OptionDirection_SIZE
-};
-enum ControlVariate
-{
-	None = 0,
-	Geometric,
-	Geometric_AdjustedStrike,
-
-	ControlVariate_SIZE
-};
-
-static const char *KERNEL_SYMBOLS[OptionType_SIZE][ControlVariate_SIZE] = { 
-	{"european", "european", "european"},
-	{"geometric_asian", "geometric_asian", "geometric_asian"},
-	{"arithmetic_asian_no_cv", "arithmetic_asian_geometric_cv", "arithmetic_asian_geometric_cv"},
-	{"geometric_basket", "geometric_basket", "geometric_basket"},
-	{"arithmetic_basket_no_cv", "arithmetic_basket_geometric_cv", "arithmetic_basket_geometric_cv"}
-};
-
-const char* get_kernel_sym(OptionType type, ControlVariate control_variate)
-{
-	if(type >= OptionType_SIZE || control_variate >= ControlVariate_SIZE) { return NULL; }
-	else { return KERNEL_SYMBOLS[type][control_variate]; }
-}
+# include "kernels.h"
 
 # define NUMBER_OF_ASSETS 3
 
