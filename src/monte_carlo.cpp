@@ -89,48 +89,6 @@ const char* get_kernel_sym(OptionType type, ControlVariate control_variate)
 {
 	if(type >= OptionType_SIZE || control_variate >= ControlVariate_SIZE) { return NULL; }
 	else { return KERNEL_SYMBOLS[type][control_variate]; }
-
-	// std::string kernel_sym;
-
-	// switch(type)
-	// {
-	// case European:
-	// 	kernel_sym = "european";
-	// 	break;
-	// case Asian_Geometric:
-	// 	kernel_sym = "geometric_asian";
-	// 	break;
-	// case Asian_Arithmetic:
-	// 	switch(control_variate)
-	// 	{
-	// 	case None:
-	// 		kernel_sym = "arithmetic_asian_no_cv";
-	// 		break;
-	// 	case Geometric:
-	// 	case Geometric_AdjustedStrike:
-	// 		kernel_sym = "arithmetic_asian_geometric_cv";
-	// 		break;
-	// 	}
-	// 	break;
-	// case Basket_Geometric:
-	// 	kernel_sym = "geometric_basket";
-	// 	break;
-	// case Basket_Arithmetic:
-	// 	switch(control_variate)
-	// 	{
-	// 	case None:
-	// 		kernel_sym = "arithmetic_basket_no_cv";
-	// 		break;
-	// 	case Geometric:
-	// 	case Geometric_AdjustedStrike:
-	// 		kernel_sym = "arithmetic_basket_geometric_cv";
-	// 		break;
-	// 	}
-	// 	break;
-	// }
-
-	// if(kernel_sym.length() == 0) { return NULL; }
-	// else { return strdup(kernel_sym.c_str()); }
 }
 
 # define NUMBER_OF_ASSETS 3
@@ -295,7 +253,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	printf("\n\nRunning kernel %s...\n", kernel_sym);
-	//free(kernel_sym);
 
 	cl_uint2 *seeds = generate_seeds(context, workers);
 	clmsync(context, devnum, seeds, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
