@@ -13,6 +13,7 @@
 # include "matrix.h"
 # include "statistics.h"
 # include "statistics_opencl.h"
+# include "opencl_utils.hpp"
 
 cl_uint2* generate_seeds(CLCONTEXT* context, unsigned int workers)
 {
@@ -186,7 +187,7 @@ int main(int argc, char **argv)
 		printf("\t                ");
 		for(int column = 0; column < number_of_assets; column++)
 		{
-			printf("%5.3f ", correlations[row*number_of_assets + column]);
+			printf("%6.3f ", correlations[row*number_of_assets + column]);
 		}
 		printf("\n");
 	}
@@ -196,7 +197,7 @@ int main(int argc, char **argv)
 		printf("\t                ");
 		for(int column = 0; column < number_of_assets; column++)
 		{
-			printf("%5.3f ", correlations_cholesky[row*number_of_assets + column]);
+			printf("%6.3f ", correlations_cholesky[row*number_of_assets + column]);
 		}
 		printf("\n");
 	}
@@ -232,23 +233,11 @@ int main(int argc, char **argv)
 	cl_uint2 *seeds = generate_seeds(context, workers);
 	clmsync(context, devnum, seeds, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 
-	// start_prices, asset_volatilities, correlations, correlations_cholesky, seeds
-	cl_float *cl_start_prices = (cl_float*)clmalloc(context, number_of_assets*sizeof(cl_float), 0);
-	cl_float *cl_volatilities = (cl_float*)clmalloc(context, number_of_assets*sizeof(cl_float), 0);
-	cl_float *cl_correlations = (cl_float*)clmalloc(context, number_of_assets*number_of_assets*sizeof(cl_float), 0);
-	cl_float *cl_correlations_cholesky = (cl_float*)clmalloc(context, number_of_assets*number_of_assets*sizeof(cl_float), 0);
+	cl_float *cl_start_prices = opencl_memcpy<cl_float, float>(context, number_of_assets, start_prices);
+	cl_float *cl_volatilities = opencl_memcpy<cl_float, float>(context, number_of_assets, volatilities);
+	cl_float *cl_correlations = opencl_memcpy<cl_float, float>(context, number_of_assets*number_of_assets, correlations);
+	cl_float *cl_correlations_cholesky = opencl_memcpy<cl_float, float>(context, number_of_assets*number_of_assets, correlations_cholesky);
 
-	for(int asset = 0; asset < number_of_assets; asset++)
-	{
-		cl_start_prices[asset] = start_prices[asset];
-		cl_volatilities[asset] = volatilities[asset];
-		
-		for(int column = 0; column < number_of_assets; column++)
-		{
-			cl_correlations[asset * number_of_assets + column] = correlations[asset * number_of_assets + column];
-			cl_correlations_cholesky[asset * number_of_assets + column] = correlations_cholesky[asset * number_of_assets + column];
-		}
-	}
 	clmsync(context, devnum, cl_start_prices, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 	clmsync(context, devnum, cl_volatilities, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 	clmsync(context, devnum, cl_correlations, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
