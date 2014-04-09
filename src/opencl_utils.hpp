@@ -5,8 +5,10 @@
 
 # include <stdcl.h>
 
+typedef cl_uint2 random_seed;
+
 template<typename To, typename From>
-To* opencl_memcpy(CLCONTEXT *context, unsigned int size, From *source)
+To* opencl_memcpy(CLCONTEXT *context, unsigned int size, const From *source)
 {
 	To *cl_mem = (To*)clmalloc(context, size*sizeof(To), 0);
 	
@@ -18,6 +20,6 @@ To* opencl_memcpy(CLCONTEXT *context, unsigned int size, From *source)
 	return cl_mem;
 }
 
-cl_uint2* generate_seeds(CLCONTEXT* context, unsigned int number_of_workers);
+random_seed* generate_seeds(CLCONTEXT* context, unsigned int number_of_workers);
 
 # endif /*OCLOP_OPENCL_UTILS_H*/

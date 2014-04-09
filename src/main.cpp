@@ -1,88 +1,81 @@
 /* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
 
 # include <iostream>
+# include <string>
+# include <sstream>
 
 # include <cstdio>
+# include <cstdlib>
+# include <ctime>
+# include <cmath>
 
 # include <stdcl.h>
 
+# include "options.hpp"
+# include "json_helper.hpp"
+# include "json_outputter.hpp"
+
+# define DEFAULT_CONTEXT ((stdgpu)? stdgpu : stdcpu)
+# define DEVICE_NUMBER 0
+# define NUMBER_OF_WORKERS 16
+
+JSONHelper* read_json_from_stdin()
+{
+	std::stringstream json_source;
+
+	for(std::string line; std::getline(std::cin, line);)
+	{
+		json_source << line << std::endl;
+	}
+	std::cerr << "JSON INPUT------------------" << std::endl;
+	std::cerr << json_source.str();
+	std::cerr << "JSON END--------------------" << std::endl;
+
+	return new JSONHelper(json_source.str());
+}
+
 int main(int argc, char **argv)
 {
-	float start_price = 100.0;
-	float strike_price = 100.0;
-	float maturity = 3.0;
-	float volatility = 0.3;
-	float risk_free_rate = 0.05;
-	float steps = 50;
+	JSONHelper *json_helper = read_json_from_stdin();
+	if(!json_helper->is_good())
+	{
+		std::cerr << "[ERROR] Failed to read input parameters from STDIN, or input wasn't valid JSON." << std::endl;
+		std::cerr << json_helper->get_parsing_errors() << std::endl;
+		return 1;
+	}
+
+	srand(time(NULL));
 
 	stdcl_init();
 
 	/* use default contexts, if no GPU use CPU */
-	CLCONTEXT* context = (stdgpu)? stdgpu : stdcpu;
-
-	unsigned int devnum = 0;
+	CLCONTEXT* context = DEFAULT_CONTEXT;
+	unsigned int device_number = DEVICE_NUMBER;
+	unsigned int number_of_workers = NUMBER_OF_WORKERS;
 
 	clopen(context, NULL, CLLD_NOW);
-	
-	cl_kernel kernel = clsym(context, NULL, "geometric_basket", 0);
-	if (!kernel)
+
+	OpenCLOption *option = create_opencl_option(*json_helper);
+	if(!option)
 	{
-		std::cerr << "error: kernel = " << kernel << std::endl;
-		return 1;
+		std::cerr << "[ERROR] Failed to create a valid option from input parameters." << std::endl;
+		return 2;
 	}
 
-	/* allocate structures for basket option inputs */
-	cl_float *start_prices = (float*)clmalloc(context, 2*sizeof(cl_float), 0);
-	start_prices[0] = 100; start_prices[1] = 90;
+	option->set_opencl_configuration(context, device_number, number_of_workers);
+	option->reset_random_seeds();
 
-	cl_float *asset_volatilities = (float*)clmalloc(context, 2*sizeof(cl_float), 0);
-	asset_volatilities[0] = 0.2; asset_volatilities[1] = 0.15;
+	float mean;
+	float confidence_interval_lower, confidence_interval_upper;
 
-	cl_float *correlations = (float*)clmalloc(context, 2*2*sizeof(cl_float), 0);
-	correlations[0] = 1; correlations[1] = 0.8;
-	correlations[2] = 0.8; correlations[3] = 1;
+	option->price(&mean, &confidence_interval_lower, &confidence_interval_upper);
 
-	/* non-blocking sync vector c to host memory (copy back to host) */
-	clmsync(context, devnum, start_prices, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
-	clmsync(context, devnum, asset_volatilities, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
-	clmsync(context, devnum, correlations, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
-	
-	/* allocate OpenCL device-sharable memory */
-	cl_float* prices = (float*)clmalloc(context, 2*sizeof(cl_float), 0);
-	
-	for(int i = 0; i < 2; i++)
-	{
-		prices[i] = 0.0f;
-	}
+	fprintf(stderr, "\tMean:      %10.5f\n", mean);
+	fprintf(stderr, "\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
+	fprintf(stderr, "\tCI size:   %10.7f\n", confidence_interval_upper-confidence_interval_lower);
 
-	/* define the computational domain and workgroup size */
-	clndrange_t index_range = clndrange_init1d(0, 1, 1);
-
-	/* non-blocking fork of the OpenCL kernel to execute on the GPU */
-	clforka(context, devnum, kernel, &index_range, CL_EVENT_NOWAIT, 2, start_prices, strike_price, maturity, asset_volatilities, risk_free_rate, correlations, prices);
-
-	/* non-blocking sync vector c to host memory (copy back to host) */
-	clmsync(context, devnum,  prices, CL_MEM_HOST|CL_EVENT_NOWAIT);
-
-	/* force execution of operations in command queue (non-blocking call) */
-	clflush(context, devnum, 0);
-
-	/* block on completion of operations in command queue */
-	clwait(context, devnum, CL_ALL_EVENT);
-
-	std::cout << "Inputs:" << std::endl;
-	printf("\tStart price:    %10.2f HKD\n", start_price);
-	printf("\tStrike price:   %10.2f HKD\n", strike_price);
-	printf("\tMaturity:       %10.3f years\n", maturity);
-	printf("\tVolatility:     %10.5f %%\n", volatility*100);
-	printf("\tRisk-free rate: %10.5f %%\n", risk_free_rate*100);
-	printf("\tSteps:          %10d\n", steps);
-
-	std::cout << std::endl << std::endl << "Results:" << std::endl;
-	printf("\tCall price:     %10.5f HKD\n", prices[0]);
-	printf("\tPut price:      %10.5f HKD\n", prices[1]);
-
-	clfree(prices);
+	JSONOutputter outputter(mean, confidence_interval_lower, confidence_interval_upper);
+	std::cout << outputter.output() << std::endl;
 
 	return 0;
 }
