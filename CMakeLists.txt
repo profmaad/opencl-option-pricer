@@ -27,7 +27,7 @@ add_custom_command(OUTPUT opencl_kernels.o COMMAND clcc -I../kernels/ -c -o open
 # target_link_libraries(random_test ${OPENCL_LIBS} ${STDCL_LIBS})
 
 set(opencl_option_pricer_SOURCES src/main.cpp src/matrix.cpp src/statistics.cpp src/statistics_opencl.cpp src/opencl_utils.cpp src/kernels.cpp src/json_helper.cpp src/json_outputter.cpp
-  src/opencl_option.cpp src/closed_form_opencl_option.cpp src/european_opencl_option.cpp src/options.cpp)
+  src/opencl_option.cpp src/closed_form_opencl_option.cpp src/european_opencl_option.cpp src/asian_geometric_opencl_option.cpp src/options.cpp)
 
 add_executable(opencl_option_pricer ${opencl_option_pricer_SOURCES} opencl_kernels.o)
 target_link_libraries(opencl_option_pricer ${OPENCL_LIBS} ${STDCL_LIBS} ${JSONCPP_LIBS})
