@@ -18,6 +18,9 @@ OpenCLOption* create_opencl_option(JSONHelper &parameters)
 	case Asian_Geometric:
 		return new AsianGeometricOpenCLOption(parameters);
 		break;
+	case Basket_Geometric:
+		return new BasketGeometricOpenCLOption(parameters);
+		break;
 	default:
 		std::cerr << "[ERROR] Option type " << parameters.get_string("type") << " not yet implemented." << std::endl;
 		return NULL;

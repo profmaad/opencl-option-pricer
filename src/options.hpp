@@ -9,6 +9,7 @@
 # include "closed_form_opencl_option.hpp"
 # include "european_opencl_option.hpp"
 # include "asian_geometric_opencl_option.hpp"
+# include "basket_geometric_opencl_option.hpp"
 
 # include "json_helper.hpp"
 

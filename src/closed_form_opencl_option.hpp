@@ -12,11 +12,11 @@ public:
 
 protected:
 	virtual void setup_inputs() = 0;
-	void setup_outputs();
+	virtual void setup_outputs();
 	virtual void fork_kernel(cl_kernel kernel) = 0;
-	void retrieve_results();
-	void finalize_results(float *population_mean, float *confidence_interval_lower, float *confidence_interval_upper);
-	void cleanup();
+	virtual void retrieve_results();
+	virtual void finalize_results(float *population_mean, float *confidence_interval_lower, float *confidence_interval_upper);
+	virtual void cleanup();
 
 	float *results;
 };

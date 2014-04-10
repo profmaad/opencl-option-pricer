@@ -1,5 +1,7 @@
 /* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
 
+# include <cassert>
+
 # include <stdcl.h>
 
 # include "closed_form_opencl_option.hpp"
@@ -12,6 +14,8 @@ ClosedFormOpenCLOption::ClosedFormOpenCLOption() : OpenCLOption(),
 void ClosedFormOpenCLOption::setup_outputs()
 {
 	results = (float*)clmalloc(context, 2*sizeof(float), 0);
+	assert(results != NULL);
+
 	clmsync(context, device_number, results, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 }
 
