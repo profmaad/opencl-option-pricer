@@ -6,14 +6,16 @@
 # include <CL/opencl.h>
 # include <stdcl.h>
 
+# include "types.h"
 # include "option.hpp"
+# include "json_helper.hpp"
 
 # include "opencl_utils.hpp"
 
 class OpenCLOption : public Option
 {
 public:
-	OpenCLOption();
+	OpenCLOption(JSONHelper &parameters);
 
 	virtual void set_opencl_configuration(CLCONTEXT *context, unsigned int device_number, unsigned int number_of_workers);
 
@@ -36,6 +38,8 @@ protected:
 	unsigned int number_of_workers;
 
 	random_seed *seeds;
+
+	OptionDirection direction;
 };
 
 # endif /*OCLOP_OPENCL_OPTION_HPP*/

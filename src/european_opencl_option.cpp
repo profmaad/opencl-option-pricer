@@ -8,7 +8,7 @@
 
 # include "european_opencl_option.hpp"
 
-EuropeanOpenCLOption::EuropeanOpenCLOption(JSONHelper &parameters) : ClosedFormOpenCLOption()
+EuropeanOpenCLOption::EuropeanOpenCLOption(JSONHelper &parameters) : ClosedFormOpenCLOption(parameters)
 {
 	start_price = parameters.get_float("start_price");
 	strike_price = parameters.get_float("strike_price");

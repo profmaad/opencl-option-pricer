@@ -10,7 +10,7 @@
 
 # include "basket_geometric_opencl_option.hpp"
 
-BasketGeometricOpenCLOption::BasketGeometricOpenCLOption(JSONHelper &parameters) : ClosedFormOpenCLOption(),
+BasketGeometricOpenCLOption::BasketGeometricOpenCLOption(JSONHelper &parameters) : ClosedFormOpenCLOption(parameters),
 										   cl_start_prices(NULL),
 										   cl_asset_volatilities(NULL),
 										   cl_correlations(NULL)

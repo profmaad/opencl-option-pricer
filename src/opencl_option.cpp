@@ -8,15 +8,17 @@
 # include <CL/opencl.h>
 
 # include "opencl_utils.hpp"
+# include "json_helper.hpp"
 
 # include "opencl_option.hpp"
 
-OpenCLOption::OpenCLOption() : Option(),
+OpenCLOption::OpenCLOption(JSONHelper &parameters) : Option(),
 	context(NULL),
 	device_number(0),
 	number_of_workers(1),
 	seeds(NULL)
 {
+	direction = parameters.get_direction();
 }
 
 void OpenCLOption::set_opencl_configuration(CLCONTEXT *context, unsigned int device_number, unsigned int number_of_workers)

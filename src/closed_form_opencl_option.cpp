@@ -4,9 +4,11 @@
 
 # include <stdcl.h>
 
+# include "json_helper.hpp"
+
 # include "closed_form_opencl_option.hpp"
 
-ClosedFormOpenCLOption::ClosedFormOpenCLOption() : OpenCLOption(),
+ClosedFormOpenCLOption::ClosedFormOpenCLOption(JSONHelper &parameters) : OpenCLOption(parameters),
 	results(NULL)
 {
 }
@@ -26,12 +28,13 @@ void ClosedFormOpenCLOption::retrieve_results()
 
 void ClosedFormOpenCLOption::finalize_results(float *population_mean, float *confidence_interval_lower, float *confidence_interval_upper)
 {
-	// TODO: check whether to do call or put
+	unsigned int result_index = 0;
+	if(direction == Put) { result_index = 1; }
 
-	*population_mean = results[0];
+	*population_mean = results[result_index];
 
-	*confidence_interval_lower = results[0];
-	*confidence_interval_upper = results[0];
+	*confidence_interval_lower = results[result_index];
+	*confidence_interval_upper = results[result_index];
 }
 
 void ClosedFormOpenCLOption::cleanup()

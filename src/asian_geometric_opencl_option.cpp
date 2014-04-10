@@ -8,7 +8,7 @@
 
 # include "asian_geometric_opencl_option.hpp"
 
-AsianGeometricOpenCLOption::AsianGeometricOpenCLOption(JSONHelper &parameters) : ClosedFormOpenCLOption()
+AsianGeometricOpenCLOption::AsianGeometricOpenCLOption(JSONHelper &parameters) : ClosedFormOpenCLOption(parameters)
 {
 	start_price = parameters.get_float("start_price");
 	strike_price = parameters.get_float("strike_price");

@@ -3,12 +3,14 @@
 # ifndef OCLOP_CLOSED_FORM_OPENCL_OPTION_HPP
 # define OCLOP_CLOSED_FORM_OPENCL_OPTION_HPP
 
+# include "json_helper.hpp"
+
 # include "opencl_option.hpp"
 
 class ClosedFormOpenCLOption : public OpenCLOption
 {
 public:
-	ClosedFormOpenCLOption();
+	ClosedFormOpenCLOption(JSONHelper &parameters);
 
 protected:
 	virtual void setup_inputs() = 0;
