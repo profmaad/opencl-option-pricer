@@ -12,6 +12,7 @@ class MonteCarloOpenCLOption : public OpenCLOption
 {
 public:
 	MonteCarloOpenCLOption(JSONHelper &parameters);
+	virtual ~MonteCarloOpenCLOption() {}
 
 protected:
 	virtual void setup_inputs() = 0;

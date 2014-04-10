@@ -16,6 +16,7 @@ class OpenCLOption : public Option
 {
 public:
 	OpenCLOption(JSONHelper &parameters);
+	virtual ~OpenCLOption();
 
 	virtual void set_opencl_configuration(CLCONTEXT *context, unsigned int device_number, unsigned int number_of_workers);
 

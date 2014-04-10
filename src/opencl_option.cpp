@@ -20,6 +20,10 @@ OpenCLOption::OpenCLOption(JSONHelper &parameters) : Option(),
 {
 	direction = parameters.get_direction();
 }
+OpenCLOption::~OpenCLOption()
+{
+	if(seeds) { clfree(seeds); }
+}
 
 void OpenCLOption::set_opencl_configuration(CLCONTEXT *context, unsigned int device_number, unsigned int number_of_workers)
 {
@@ -99,6 +103,7 @@ bool OpenCLOption::price(float *population_mean, float *confidence_interval_lowe
 	finalize_results(population_mean, confidence_interval_lower, confidence_interval_upper);
 
 	cleanup();
+	//if(kernel) { clclose(context, kernel); }
 
 	return true;
 }

@@ -11,6 +11,7 @@ class ClosedFormOpenCLOption : public OpenCLOption
 {
 public:
 	ClosedFormOpenCLOption(JSONHelper &parameters);
+	virtual ~ClosedFormOpenCLOption() {}
 
 protected:
 	virtual void setup_inputs() = 0;
