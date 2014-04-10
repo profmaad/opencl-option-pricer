@@ -1,0 +1,14 @@
+{
+    "type": "basket_arithmetic",
+    "direction": "call",
+    "control_variate": "none",
+
+    "samples": 100000,
+    
+    "start_price": [100, 90, 110],
+    "strike_price": 100,
+    "maturity": 3,
+    "volatility": [0.3, 0.15, 0.1],
+    "risk_free_rate": 0.05,
+    "correlation": [ [1.0, 0.8, 0.5], [0.8, 1.0, 0.3], [0.5, 0.3, 1.0] ]
+}

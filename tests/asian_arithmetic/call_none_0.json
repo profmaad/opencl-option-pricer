@@ -1,6 +1,7 @@
 {
     "type": "asian_arithmetic",
     "direction": "call",
+    "control_variate": "none",
 
     "samples": 100000,
     
