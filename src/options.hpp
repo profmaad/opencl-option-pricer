@@ -11,6 +11,9 @@
 # include "asian_geometric_opencl_option.hpp"
 # include "basket_geometric_opencl_option.hpp"
 
+# include "monte_carlo_opencl_option.hpp"
+# include "asian_arithmetic_opencl_option.hpp"
+
 # include "json_helper.hpp"
 
 OpenCLOption* create_opencl_option(JSONHelper &parameters);
