@@ -69,6 +69,8 @@ int main(int argc, char **argv)
 	float confidence_interval_lower, confidence_interval_upper;
 
 	option->price(&mean, &confidence_interval_lower, &confidence_interval_upper);
+	delete option;
+	delete json_helper;
 
 	fprintf(stderr, "\tMean:      %10.5f\n", mean);
 	fprintf(stderr, "\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);

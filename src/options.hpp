@@ -13,6 +13,7 @@
 
 # include "monte_carlo_opencl_option.hpp"
 # include "asian_arithmetic_opencl_option.hpp"
+# include "basket_arithmetic_opencl_option.hpp"
 
 # include "json_helper.hpp"
 

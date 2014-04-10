@@ -23,6 +23,9 @@ MonteCarloOpenCLOption::MonteCarloOpenCLOption(JSONHelper &parameters) : OpenCLO
 		number_of_paths += number_of_workers - (number_of_paths % number_of_workers);
 	}
 	paths_per_worker = number_of_paths/number_of_workers;
+
+	assert(number_of_paths > 0);
+	assert(paths_per_worker > 0);
 }
 
 bool MonteCarloOpenCLOption::use_control_variate()

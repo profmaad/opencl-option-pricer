@@ -29,7 +29,7 @@ void AsianArithmeticOpenCLOption::fork_kernel(cl_kernel kernel)
 
 	if(use_control_variate())
 	{
-		clforka(context, device_number, kernel, &index_range, CL_EVENT_NOWAIT, direction, start_price, strike_price, maturity, volatility, risk_free_rate, averaging_steps, number_of_paths, seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
+		clforka(context, device_number, kernel, &index_range, CL_EVENT_NOWAIT, direction, start_price, strike_price, maturity, volatility, risk_free_rate, averaging_steps, number_of_paths, use_adjusted_strike(), seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
 	}
 	else
 	{
