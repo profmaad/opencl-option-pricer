@@ -53,7 +53,7 @@ BasketArithmeticOpenCLOption::~BasketArithmeticOpenCLOption()
 
 const char* BasketArithmeticOpenCLOption::kernel_symbol()
 {
-	return get_kernel_sym(Basket_Arithmetic, None);	
+	return get_kernel_sym(Basket_Arithmetic, control_variate);
 }
 
 void BasketArithmeticOpenCLOption::setup_inputs()
