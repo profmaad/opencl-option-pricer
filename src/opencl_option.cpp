@@ -5,7 +5,8 @@
 # include <cstddef>
 # include <cassert>
 
-# include <CL/opencl.h>
+# include <CL/cl.h>
+//# include <CL/opencl.h>
 
 # include "opencl_utils.hpp"
 # include "json_helper.hpp"

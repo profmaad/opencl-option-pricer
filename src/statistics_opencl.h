@@ -3,7 +3,8 @@
 # ifndef OCLOP_STATISTICS_OPENCL_H
 # define OCLOP_STATISTICS_OPENCL_H
 
-# include <CL/opencl.h>
+# include <CL/cl.h>
+//# include <CL/opencl.h>
 
 // this assumes that the layout for two-vectors is:
 // vec.x -> (sub)sample mean

@@ -1,5 +1,7 @@
 /* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
 
+# include <cstdlib>
+
 # include "opencl_utils.hpp"
 
 random_seed* generate_seeds(CLCONTEXT* context, unsigned int number_of_workers)

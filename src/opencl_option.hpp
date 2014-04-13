@@ -3,7 +3,8 @@
 # ifndef OCLOP_OPENCL_OPTION_HPP
 # define OCLOP_OPENCL_OPTION_HPP
 
-# include <CL/opencl.h>
+# include <CL/cl.h>
+//# include <CL/opencl.h>
 # include <stdcl.h>
 
 # include "types.h"
