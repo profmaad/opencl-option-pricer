@@ -62,21 +62,26 @@ __kernel void arithmetic_asian_no_cv(unsigned int direction, float start_price, 
 	
 	// calculate fixed monte carlo parameters
 	float delta_t = maturity/((float)averaging_steps);
+	float sqrt_delta_t = sqrt(delta_t);
 	float drift = exp((risk_free_rate - 0.5*volatility*volatility) * delta_t);
 	float running_mean_sample_factor = 1.0f/(float)averaging_steps;
 	float discounting_factor = exp(-risk_free_rate * maturity);
 
+	float path_mean = 0;
+	float asset_price = 0;
+	float growth_factor = 0;
+
 	for(int path = 0; path < number_of_paths; path++)
 	{
-		float path_mean = 0;
+		path_mean = 0;
 
-		float growth_factor = drift * exp(volatility * sqrt(delta_t) * stdnormal_float_random(&prng_state));
-		float asset_price = start_price * growth_factor;
+		growth_factor = drift * exp(volatility * sqrt_delta_t * stdnormal_float_random(&prng_state));
+		asset_price = start_price * growth_factor;
 		path_mean += asset_price*running_mean_sample_factor;
 		
 		for(int i = 1; i < averaging_steps; i++)
 		{
-			growth_factor = drift * exp(volatility * sqrt(delta_t) * stdnormal_float_random(&prng_state));
+			growth_factor = drift * exp(volatility * sqrt_delta_t * stdnormal_float_random(&prng_state));
 			asset_price *= growth_factor;
 			path_mean += asset_price*running_mean_sample_factor;
 		}
