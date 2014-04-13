@@ -4,7 +4,7 @@
 # include <statistics.h>
 
 
-__kernel void random_test(unsigned int work_size, __global uint2 *seeds, __global float *mean, __global float *variance)
+__kernel void random_test(unsigned int work_size, __global uint2 *seeds, __global float2 *results)
 {
 	int tid = get_global_id(0);
 
@@ -31,7 +31,7 @@ __kernel void random_test(unsigned int work_size, __global uint2 *seeds, __globa
 	float sample_variance = finalize_running_variance(&variance_iteration, &variance_a, &variance_q);
 	float sample_mean = variance_a;
 
-	mean[tid] = sample_mean;
-	variance[tid] = sample_variance;
+	results[tid].x = sample_mean;
+	results[tid].y = sample_variance;
 }
 
