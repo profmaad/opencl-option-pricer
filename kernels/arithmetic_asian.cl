@@ -185,7 +185,6 @@ __kernel void arithmetic_asian_geometric_cv(unsigned int direction, float start_
 	float discounting_factor = exp(-risk_free_rate * maturity);
 
 	float adjusted_strike_price = (adjust_strike == 0 ? strike_price : arithmetic_asian_geometric_cv_adjusted_strike(start_price, strike_price, maturity, volatility, risk_free_rate, averaging_steps));
-	printf("Worker %d Adjusted Strike Price: %f\n", adjusted_strike_price);
 
 	for(int path = 0; path < number_of_paths; path++)
 	{
