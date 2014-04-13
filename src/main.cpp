@@ -15,7 +15,7 @@
 # include "json_helper.hpp"
 # include "json_outputter.hpp"
 
-# define DEFAULT_CONTEXT ((stdgpu)? stdgpu : stdcpu)
+# define DEFAULT_CONTEXT ((stdacc)? stdacc : stdcpu)
 # define DEVICE_NUMBER 0
 # define NUMBER_OF_WORKERS 16
 
@@ -50,6 +50,11 @@ int main(int argc, char **argv)
 
 	/* use default contexts, if no GPU use CPU */
 	CLCONTEXT* context = DEFAULT_CONTEXT;
+	if(!context)
+	{
+		std::cerr << "[ERROR] No valid OpenCL context found." << std::endl;
+		return 2;
+	}
 	unsigned int device_number = DEVICE_NUMBER;
 	unsigned int number_of_workers = NUMBER_OF_WORKERS;
 
