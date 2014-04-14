@@ -96,6 +96,12 @@ void MonteCarloOpenCLOption::finalize_results(float *population_mean, float *con
 
                 // calculate total variance of Z as Var(Z) = Var(X) - 2\theta*Cov(X,Y) + \theta^2*Var(Y)
 		population_variance = arithmetic_variance - 2*theta*covariance + theta*theta*geometric_variance;
+
+		if(population_variance < 0)
+		{
+			fprintf(stderr, "[WARNING]: population variance is negative, assuming variance of zero.\n");
+			population_variance = 0;
+		}
 	}
 	else
 	{
