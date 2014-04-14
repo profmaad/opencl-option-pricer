@@ -33,7 +33,7 @@ BasketArithmeticOpenCLOption::BasketArithmeticOpenCLOption(JSONHelper &parameter
 	assert(asset_volatilities != NULL);
 	assert(correlations != NULL);
 
-	correlations_cholesky = (float*)malloc(number_of_assets*number_of_paths*sizeof(float));
+	correlations_cholesky = (float*)malloc(number_of_assets*number_of_assets*sizeof(float));
 	assert(correlations_cholesky != NULL);
 	
 	cholesky_decomposition(number_of_assets, correlations, correlations_cholesky);
