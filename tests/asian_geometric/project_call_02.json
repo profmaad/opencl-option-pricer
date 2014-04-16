@@ -1,0 +1,16 @@
+{
+    "type": "asian_geometric",
+    "direction": "call",
+    
+    "start_price": 100,
+    "strike_price": 100,
+    "maturity": 3,
+    "volatility": 0.3,
+    "risk_free_rate": 0.05,
+    "averaging_steps": 100,
+
+    "expected": {
+	"mean": 13.1388,
+	"precision": 4
+    }
+}

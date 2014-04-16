@@ -1,0 +1,15 @@
+{
+    "type": "european",
+    "direction": "call",
+    
+    "start_price": 100,
+    "strike_price": 100,
+    "maturity": 3,
+    "volatility": 0.3,
+    "risk_free_rate": 0.05,
+
+    "expected": {
+	"mean": 26.8055,
+	"precision": 4
+    }
+}

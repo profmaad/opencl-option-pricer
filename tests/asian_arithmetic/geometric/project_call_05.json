@@ -1,0 +1,18 @@
+{
+    "type": "asian_arithmetic",
+    "direction": "call",
+    "control_variate": "geometric",
+    
+    "start_price": 100,
+    "strike_price": 100,
+    "maturity": 3,
+    "volatility": 0.4,
+    "risk_free_rate": 0.05,
+    "averaging_steps": 50,
+    "samples": 10000,
+
+    "expected": {
+	"mean": 18.2666,
+	"delta": 0.15
+    }
+}

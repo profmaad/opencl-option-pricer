@@ -1,0 +1,15 @@
+{
+    "type": "european",
+    "direction": "put",
+    
+    "start_price": 100,
+    "strike_price": 100,
+    "maturity": 3,
+    "volatility": 0.4,
+    "risk_free_rate": 0.05,
+
+    "expected": {
+	"mean": 18.8088,
+	"precision": 4
+    }
+}
