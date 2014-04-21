@@ -51,7 +51,13 @@ stats = {
   (@max_filename_length-pretty_test_filename.length).times {print ' '}
   stats[:tests] += 1
 
-  input_parameters = JSON.parse(IO.read(test_filename))
+  begin
+    input_parameters = JSON.parse(IO.read(test_filename))
+  rescue JSON::ParserError => e
+    puts "PARSING FAILED: #{e}"
+    stats[:failed] += 1
+    next
+  end
   expected_output = input_parameters['expected']
 
   if(expected_output.nil?)
