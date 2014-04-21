@@ -1,16 +1,9 @@
-/* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
+/* (c) 2014 Maximilian Gerhard Wolter */
 
 # include <random.h>
 # include <statistics.h>
 
 # include "geometric_asian.cl"
-
-// results (no cv):
-// arithmetic mean (running per path)
-// -> payoff (per path)
-//    -> value (per path)
-//       -> value mean (running total)
-//       -> value stddev (running total)
 
 # define CALL 0
 # define PUT 1
@@ -100,55 +93,6 @@ __kernel void arithmetic_asian_no_cv(unsigned int direction, float start_price, 
 	results[tid].y = finalize_running_variance(&statistics_iteration, &running_mean, &running_m2);
 }
 
-// results (cv):
-// arithmetic mean (running per path)
-// geometric mean (running per path)
-// -> payoff (per path)
-// -> cv payoff (per path)
-//    -> value (per path)
-//    -> cv value (per path)
-//       -> value mean (running total)
-//       -> cv value mean (running total)
-//       -> (cv value * value) mean (running total)
-// write back to host:
-// * value
-// * cv value
-// * value mean (partial of total solution)
-// * cv value mean (partial of total solution)
-// * (cv value * value) mean (partial of total solution)
-// calculate on host:
-// * value mean (total solution)
-// * cv value mean (total solution)
-// * (cv value * value) mean (total solution)
-// * cv value variance
-// * covariance
-// * theta
-// * z values
-// * z mean
-// * z stddev
-
-// CV algorithm;
-// for each path:
-//   for each sample:
-//     generate sample
-//     update running path arith mean price -> value
-//     update running path geom mean price -> cv_value
-//   update running mean, running variance for arith path price -> E_i(X), Var_i(X)
-//   update running mean, running variance for geom path price -> E_i(Y), Var_i(Y)
-//   update running mean for (arith * geom) path price -> E_i(XY)
-//  finalize variance for arith path price -> Var_i(X)
-//  finalize variance for geom path price -> Var_i(Y)
-// On host:
-// calculate total mean of arith path price -> E(X)
-// calculate total mean of geom path price -> E(Y)
-// calculate total mean of (arith * geom) path price -> E(XY)
-// calculate total variance of arith path price -> Var(X)
-// calculate total variance of geom path price -> Var(Y)
-// calculate total covariance of X,Y as Cov(X,Y) = E(XY) - E(X)*E(Y)
-// set E(Z) = E(X)
-// calculate theta as \theta = Cov(X,Y)/Var(Y)
-// calculate total variance of Z as Var(Z) = Var(X) - 2\theta*Cov(X,Y) + \theta^2*Var(Y)
-// result is E(Z),Var(Z)
 
 __kernel void arithmetic_asian_geometric_cv(unsigned int direction, float start_price, float strike_price, float maturity, float volatility, float risk_free_rate, unsigned int averaging_steps, unsigned int total_number_of_paths, unsigned int adjust_strike, __global uint2 *seeds, __global float2 *arithmetic_results, __global float2 *geometric_results, __global float *arithmetic_geometric_means)
 {
