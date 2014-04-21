@@ -1,4 +1,4 @@
-/* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
+/* (c) 2014 Maximilian Gerhard Wolter */
 
 # ifndef OCLOP_JSON_HELPER_HPP
 # define OCLOP_JSON_HELPER_HPP

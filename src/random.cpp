@@ -1,3 +1,5 @@
+/* (c) 2014 Maximilian Gerhard Wolter */
+
 # include <iostream>
 
 # include <cstdio>
@@ -15,8 +17,7 @@ int main(int argc, char **argv)
 	stdcl_init();
 
 	/* use default contexts, if no epiphany use CPU */
-	//CLCONTEXT* context = (stdacc)? stdacc : stdcpu;
-	CLCONTEXT* context = stdacc;
+	CLCONTEXT* context = (stdacc)? stdacc : stdcpu;
 	printf("Context: %p\n", context);
 	if(!context)
 	{

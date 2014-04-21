@@ -1,4 +1,4 @@
-/* (c) 2014 Maximilian Gerhard Wolter (2009956434) */
+/* (c) 2014 Maximilian Gerhard Wolter */
 
 # ifndef OCLOP_BASKET_ARITHMETIC_OPENCL_OPTION_HPP
 # define OCLOP_BASKET_ARITHMETIC_OPENCL_OPTION_HPP

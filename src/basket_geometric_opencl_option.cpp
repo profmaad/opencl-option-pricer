@@ -1,4 +1,4 @@
-/* (C) 2014 Maximilian Gerhard Wolter (2009956434) */
+/* (C) 2014 Maximilian Gerhard Wolter */
 
 # include <cstdlib>
 # include <cstdio>
