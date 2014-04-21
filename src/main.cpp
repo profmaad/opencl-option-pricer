@@ -27,9 +27,6 @@ JSONHelper* read_json_from_stdin()
 	{
 		json_source << line << std::endl;
 	}
-	std::cerr << "JSON INPUT------------------" << std::endl;
-	std::cerr << json_source.str();
-	std::cerr << "JSON END--------------------" << std::endl;
 
 	return new JSONHelper(json_source.str());
 }
