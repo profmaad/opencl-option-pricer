@@ -7,9 +7,11 @@ float arithmetic_mean(unsigned int n, float *values)
 {
 	float mean = 0.0;
 
+	float factor = 1.0f/(float)n;
+
 	for(int i = 0; i < n; i++)
 	{
-		mean += values[i]/n;
+		mean += values[i] * factor;
 	}
 
 	return mean;
@@ -18,9 +20,11 @@ float geometric_mean(unsigned int n, float *values)
 {
 	float sum = 0.0;
 
+	float factor = 1.0f/(float)n;
+
 	for(int i = 0; i < n; i++)
 	{
-		sum += log(values[i])/n;
+		sum += log(values[i]) * factor;
 	}
 
 	return exp(sum);

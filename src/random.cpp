@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	printf("kernel: %p\n", kernel);
 
 	// 10 000 000
-	unsigned int work_size = 1000000;
+	unsigned int work_size = 10000000;
 	unsigned int workers = 16;
 
         if(work_size % workers != 0)
