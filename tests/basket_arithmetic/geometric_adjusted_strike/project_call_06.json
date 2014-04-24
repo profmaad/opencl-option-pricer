@@ -12,7 +12,7 @@
     "samples": 10000,
 
     "expected": {
-	"mean": 17.9943,
+	"mean": 16.6210,
 	"delta": 0.5
     }
 }
