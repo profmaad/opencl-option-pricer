@@ -2,6 +2,7 @@
 
 require 'json'
 require 'open3'
+require 'csv'
 
 PRICER_BINARY = File.expand_path('../build/opencl_option_pricer')
 DELTA = 1e-3
@@ -32,7 +33,38 @@ def run_test_case(input_parameters, expected_output)
   return [outcome, result['mean'], error]
 end
 
+def test_case_to_csv(input_parameters)
+  strike_price = input_parameters['strike_price']
+
+  volatility = input_parameters['volatility']
+  if(volatility.is_a? Array)
+    volatility = '\specialcell{' + volatility.join(' \\\\ ') + '}'
+  end
+
+  correlation = input_parameters['correlation'] ? input_parameters['correlation'][0][1] : nil
+  averaging_steps = input_parameters['averaging_steps']
+
+  type = case input_parameters['type']
+         when 'european' then 'European'
+         when 'asian_geometric' then 'Geometric Asian'
+         when 'asian_arithmetic' then 'Arithmetic Asian'
+         when 'basket_geometric' then 'Geometric Basket'
+         when 'basket_arithmetic' then 'Arithmetic Basket'
+         end
+
+  direction = input_parameters['direction'] == 'call' ? 'Call' : 'Put'
+
+  control_variate = case input_parameters['control_variate']
+                    when 'none' then 'N'
+                    when 'geometric' then 'G'
+                    when 'geometric_adjusted_strike' then 'GA'
+                    end
+
+  return [type, direction, control_variate, strike_price, volatility, correlation, averaging_steps]
+end
+
 @test_dir = File.expand_path(ARGV.shift)
+@csv_file = ARGV.shift unless ARGV.empty?
 
 stats = {
   tests: 0,
@@ -43,6 +75,11 @@ stats = {
 @tests = Dir.glob(@test_dir + '/**/*.json').sort
 
 @max_filename_length = @tests.map {|filename| filename.length - @test_dir.length - 1}.max
+
+if(@csv_file)
+  @csv = CSV.open(@csv_file, 'wb')
+  @csv << ['Type', 'Direction', 'Control Variate', 'Strike Price', 'Volatility', 'Correlation', 'Averaging Steps', 'Price']
+end
 
 @tests.each do |test_filename|
   pretty_test_filename = test_filename.slice(@test_dir.length+1..-1)
@@ -76,6 +113,14 @@ stats = {
   end
 
   stats[(result ? :passed : :failed)] += 1
+
+  if(@csv)
+    line = test_case_to_csv(input_parameters)
+    mean_string = '%g' % ('%.05f' % mean)
+    line << mean_string
+
+    @csv << line
+  end
 end
 
 puts
@@ -83,4 +128,9 @@ if(stats[:failed] == 0)
   puts "All tests passed!"
 else
   puts "Failed test cases: #{stats[:failed]}/#{stats[:tests]}"
+end
+
+if(@csv)
+  @csv.close
+  puts "CSV written to #{@csv_file}"
 end
