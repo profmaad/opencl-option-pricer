@@ -34,3 +34,6 @@ target_link_libraries(opencl_option_pricer ${OPENCL_LIBS} ${STDCL_LIBS} ${JSONCP
 
 add_executable(random_test src/random.cpp src/statistics_opencl.cpp opencl_kernels.o)
 target_link_libraries(random_test ${OPENCL_LIBS} ${STDCL_LIBS})
+
+add_executable(random_test_host src/random_host.cpp src/statistics_opencl.cpp opencl_kernels.o)
+target_link_libraries(random_test_host ${OPENCL_LIBS} ${STDCL_LIBS})
