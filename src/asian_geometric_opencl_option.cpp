@@ -2,6 +2,7 @@
 
 # include <cstdlib>
 # include <cstdio>
+# include <cassert>
 
 # include "kernels.h"
 # include "json_helper.hpp"
@@ -16,6 +17,15 @@ AsianGeometricOpenCLOption::AsianGeometricOpenCLOption(JSONHelper &parameters) :
 	volatility = parameters.get_float("volatility");
 	risk_free_rate = parameters.get_float("risk_free_rate");
 	averaging_steps = parameters.get_uint("averaging_steps");
+
+	assert(start_price >= 0);
+	assert(strike_price >= 0);
+	assert(maturity > 0);
+	assert(volatility >= 0);
+	assert(volatility <= 1);
+	assert(risk_free_rate >= 0);
+	assert(risk_free_rate <= 1);     
+	assert(averaging_steps > 0);
 }
 
 const char* AsianGeometricOpenCLOption::kernel_symbol()

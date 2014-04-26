@@ -2,6 +2,7 @@
 
 # include <cstdlib>
 # include <cstdio>
+# include <cassert>
 
 # include "kernels.h"
 # include "json_helper.hpp"
@@ -15,6 +16,14 @@ EuropeanOpenCLOption::EuropeanOpenCLOption(JSONHelper &parameters) : ClosedFormO
 	maturity = parameters.get_float("maturity");
 	volatility = parameters.get_float("volatility");
 	risk_free_rate = parameters.get_float("risk_free_rate");
+
+	assert(start_price >= 0);
+	assert(strike_price >= 0);
+	assert(maturity > 0);
+	assert(volatility >= 0);
+	assert(volatility <= 1);
+	assert(risk_free_rate >= 0);
+	assert(risk_free_rate <= 1);
 }
 
 const char* EuropeanOpenCLOption::kernel_symbol()

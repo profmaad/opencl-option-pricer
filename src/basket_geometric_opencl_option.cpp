@@ -30,6 +30,26 @@ BasketGeometricOpenCLOption::BasketGeometricOpenCLOption(JSONHelper &parameters)
 	assert(start_prices != NULL);
 	assert(asset_volatilities != NULL);
 	assert(correlations != NULL);
+
+	assert(number_of_assets > 0);
+
+	assert(strike_price >= 0);
+	assert(maturity > 0);
+	assert(risk_free_rate >= 0);
+	assert(risk_free_rate <= 1);
+
+	for(unsigned int i = 0; i < number_of_assets; i++)
+	{
+		assert(start_prices[i] >= 0);
+		assert(asset_volatilities[i] >= 0);
+		assert(asset_volatilities[i] <= 1);
+
+		for(unsigned int j = 0; j < number_of_assets; j++)
+		{
+			assert(correlations[i*number_of_assets + j] >= 0);
+			assert(correlations[i*number_of_assets + j] <= 1);
+		}
+	}
 }
 BasketGeometricOpenCLOption::~BasketGeometricOpenCLOption()
 {
