@@ -2,6 +2,8 @@
 
 # include <string>
 
+# include <cmath>
+
 # include <json/json.h>
 
 # include "json_outputter.hpp"
@@ -24,10 +26,20 @@ std::string JSONOutputter::output()
 	Json::Value root;
 
 	Json::Value json_confidence_interval;
-	json_confidence_interval.append(confidence_interval_lower);
-	json_confidence_interval.append(confidence_interval_upper);
+	if(std::isnormal(confidence_interval_lower) && std::isnormal(confidence_interval_upper))
+	{
+		json_confidence_interval.append(confidence_interval_lower);
+		json_confidence_interval.append(confidence_interval_upper);
+	}
+	else
+	{
+		json_confidence_interval.append(-1.0f);
+		json_confidence_interval.append(-1.0f);
+	}
 
-	root["mean"] = mean;
+	if(std::isnormal(mean)) { root["mean"] = mean; }
+	else { root["mean"] = -1.0f; }
+
 	root["confidence_interval"] = json_confidence_interval;
 
 	if(number_of_paths > 0)
