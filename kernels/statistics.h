@@ -49,6 +49,7 @@ void update_running_variance(unsigned int *iteration, float *mean, float *m2, fl
 }
 float finalize_running_variance(unsigned int *iteration, float *mean, float *m2)
 {
+	if(*iteration == 1) { return 0; }
 	return *m2 / ((*iteration)-1);
 }
 

@@ -42,14 +42,18 @@ void population_statistics_from_subsample_statistics(const unsigned int number_o
 		sum_of_sample_variances += samples[i].y;
 	}
 
-	*population_variance =
-		(sample_size - 1.0f) / (number_of_samples*sample_size - 1.0f) *
-		(
-			sum_of_sample_variances + 
+	if(sample_size < 2) { *population_variance = 0; }
+	else
+	{
+		*population_variance =
+			(sample_size - 1.0f) / (number_of_samples*sample_size - 1.0f) *
 			(
-				(sample_size * (number_of_samples - 1.0f)) / (sample_size-1.0f)
-				* variance_of_sample_means
-			)
-		)
-		;
+				sum_of_sample_variances + 
+				(
+					(sample_size * (number_of_samples - 1.0f)) / (sample_size-1.0f)
+					* variance_of_sample_means
+					)
+				)
+			;
+	}
 }
