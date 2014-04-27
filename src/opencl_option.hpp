@@ -35,6 +35,8 @@ protected:
 	virtual void cleanup() = 0;
 	virtual void finalize_results(float *population_mean, float *confidence_interval_lower, float *confidence_interval_upper) = 0;
 
+	virtual void opencl_configuration_changed() {}
+
 	CLCONTEXT *context;
 	unsigned int device_number;
 	unsigned int number_of_workers;

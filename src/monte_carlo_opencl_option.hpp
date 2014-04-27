@@ -22,6 +22,8 @@ protected:
 	virtual void finalize_results(float *population_mean, float *confidence_interval_lower, float *confidence_interval_upper);
 	virtual void cleanup();
 
+	virtual void opencl_configuration_changed();
+
 	bool use_control_variate();
 	bool use_adjusted_strike();
 

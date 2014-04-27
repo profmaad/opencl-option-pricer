@@ -31,6 +31,8 @@ void OpenCLOption::set_opencl_configuration(CLCONTEXT *context, unsigned int dev
 	this->context = context;
 	this->device_number = device_number;
 	this->number_of_workers = number_of_workers;
+
+	opencl_configuration_changed();
 }
 
 void OpenCLOption::set_random_seeds(const random_seed *seeds)
