@@ -23,7 +23,11 @@ MonteCarloOpenCLOption::MonteCarloOpenCLOption(JSONHelper &parameters) : OpenCLO
 
 void MonteCarloOpenCLOption::opencl_configuration_changed()
 {
-	if(number_of_paths % number_of_workers != 0)
+	if(number_of_paths / number_of_workers <= 1)
+	{
+		number_of_paths = 2*number_of_workers;
+	}
+	else if(number_of_paths % number_of_workers != 0)
 	{
 		number_of_paths += number_of_workers - (number_of_paths % number_of_workers);
 	}
