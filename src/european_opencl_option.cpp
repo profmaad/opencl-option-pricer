@@ -21,9 +21,7 @@ EuropeanOpenCLOption::EuropeanOpenCLOption(JSONHelper &parameters) : ClosedFormO
 	assert(strike_price >= 0);
 	assert(maturity > 0);
 	assert(volatility >= 0);
-	assert(volatility <= 1);
 	assert(risk_free_rate >= 0);
-	assert(risk_free_rate <= 1);
 }
 
 const char* EuropeanOpenCLOption::kernel_symbol()
