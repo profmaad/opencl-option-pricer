@@ -49,7 +49,22 @@ int main(int argc, char **argv)
 	stdcl_init();
 
 	/* use default contexts, if no GPU use CPU */
-	CLCONTEXT* context = DEFAULT_CONTEXT;
+        CLCONTEXT* context = NULL;
+        if(stdacc)
+	{
+		std::cerr << "[INFO] using Epiphany accelerator" << std::endl;
+		context = stdacc;
+	}
+        else if(stdgpu)
+	{
+		std::cerr << "[INFO] using GPU" << std::endl;
+		context = stdgpu;
+	}
+        else
+	{
+		std::cerr << "[WARN] falling back to CPU" << std::endl;
+		context = stdcpu;
+	}
 	if(!context)
 	{
 		std::cerr << "[ERROR] No valid OpenCL context found." << std::endl;
