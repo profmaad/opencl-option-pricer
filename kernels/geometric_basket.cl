@@ -3,7 +3,7 @@
 # include "stdnormal.h"
 # include "statistics.h"
 
-float geometric_basket_volatility(unsigned int number_of_assets, float *asset_volatilities, float *correlations)
+float geometric_basket_volatility(unsigned int number_of_assets, __global float *asset_volatilities, __global float *correlations)
 {
 	float sum = 0.0;
 
@@ -19,7 +19,7 @@ float geometric_basket_volatility(unsigned int number_of_assets, float *asset_vo
 
 	return volatility;
 }
-float geometric_basket_mu(unsigned int number_of_assets, float risk_free_rate, float *asset_volatilities, float volatility)
+float geometric_basket_mu(unsigned int number_of_assets, float risk_free_rate, __global float *asset_volatilities, float volatility)
 {
 	float sum = 0.0;
 
@@ -33,12 +33,12 @@ float geometric_basket_mu(unsigned int number_of_assets, float risk_free_rate, f
 	return mu;
 }
 
-float geometric_basket_start_price(unsigned int number_of_assets, float *start_prices)
+float geometric_basket_start_price(unsigned int number_of_assets, __global float *start_prices)
 {
 	return geometric_mean(number_of_assets, start_prices);
 }
 
-float geometric_basket_expected_underlying_price_at_maturity(unsigned int number_of_assets, float *start_prices, float maturity, float *asset_volatilities, float risk_free_rate, float *correlations)
+float geometric_basket_expected_underlying_price_at_maturity(unsigned int number_of_assets, __global float *start_prices, float maturity, __global float *asset_volatilities, float risk_free_rate, __global float *correlations)
 {
 	float start_price = geometric_basket_start_price(number_of_assets, start_prices);
 	float volatility = geometric_basket_volatility(number_of_assets, asset_volatilities, correlations);

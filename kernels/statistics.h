@@ -3,7 +3,7 @@
 # ifndef OPENCL_STATISTICS_H
 # define OPENCL_STATISTICS_H
 
-float arithmetic_mean(unsigned int n, float *values)
+float arithmetic_mean(unsigned int n, __global float *values)
 {
 	float mean = 0.0;
 
@@ -16,7 +16,7 @@ float arithmetic_mean(unsigned int n, float *values)
 
 	return mean;
 }
-float geometric_mean(unsigned int n, float *values)
+float geometric_mean(unsigned int n, __global float *values)
 {
 	float sum = 0.0;
 

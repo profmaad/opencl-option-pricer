@@ -5,11 +5,16 @@
 
 # include <mwc64x/mwc64x/mwc64x_rng.cl>
 
+# ifndef M_PI_F
 # define M_PI_F       3.14159274101257f
-# define UINT_MAX     0xffffffff
+# endif
 
-const float INT_TO_FLOAT_FACTOR = 1.0/UINT_MAX;
-const float TWO_PI = 2 * M_PI_F;
+# ifndef UINT_MAX
+# define UINT_MAX     0xffffffff
+# endif
+
+static const float INT_TO_FLOAT_FACTOR = 1.0/UINT_MAX;
+static const float TWO_PI = 2 * M_PI_F;
 
 typedef mwc64x_state_t uniform_int_prng_state;
 typedef struct stdnormal_float_prng_state
@@ -23,7 +28,8 @@ typedef struct correlated_stdnormal_float_prng_state
 {
 	stdnormal_float_prng_state *base_state;
 	unsigned int size;
-	float *correlation_matrix;
+	__global float *correlation_matrix;
+	__global float *uncorrelated_random;
 } correlated_stdnormal_float_prng_state;
 
 void initialize_uniform_int_prng(uniform_int_prng_state *state, uint2 seed)
@@ -70,20 +76,20 @@ float stdnormal_float_random(stdnormal_float_prng_state *state)
 	}
 }
 
-void initialize_correlated_stdnormal_float_prng(correlated_stdnormal_float_prng_state *state, stdnormal_float_prng_state *base_state, unsigned int size, float *correlations)
+void initialize_correlated_stdnormal_float_prng(correlated_stdnormal_float_prng_state *state, stdnormal_float_prng_state *base_state, unsigned int size, __global float *correlations, __global float *uncorrelated_random)
 {
 	state->base_state = base_state;
 	state->size = size;
 	state->correlation_matrix = correlations;
+	state->uncorrelated_random = uncorrelated_random;
 }
-void correlated_stdnormal_float_random(correlated_stdnormal_float_prng_state *state, float *random)
+void correlated_stdnormal_float_random(correlated_stdnormal_float_prng_state *state, __global float *random)
 {
 	// corr_rand = rand * correlations (vector = vector * matrix)
 
-	float uncorrelated_random[state->size];
 	for(int i = 0; i < state->size; i++)
 	{
-		uncorrelated_random[i] = stdnormal_float_random(state->base_state);
+		state->uncorrelated_random[i] = stdnormal_float_random(state->base_state);
 	}
 
 	for(int i = 0; i < state->size; i++)
@@ -91,7 +97,7 @@ void correlated_stdnormal_float_random(correlated_stdnormal_float_prng_state *st
 		random[i] = 0.0f;
 		for(int j = 0; j < state->size; j++)
 		{
-			random[i] += uncorrelated_random[j] * state->correlation_matrix[j*state->size + i];
+			random[i] += state->uncorrelated_random[j] * state->correlation_matrix[j*state->size + i];
 		}
 	}
 }

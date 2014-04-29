@@ -8,7 +8,7 @@
 # define CALL 0
 # define PUT 1
 
-float arithmetic_basket_start_price(unsigned int number_of_assets, float *start_prices)
+float arithmetic_basket_start_price(unsigned int number_of_assets, __global float *start_prices)
 {
 	float factor = 1.0f/number_of_assets;
 
@@ -21,12 +21,12 @@ float arithmetic_basket_start_price(unsigned int number_of_assets, float *start_
 	return start_price;
 }
 
-float arithmetic_basket_expected_underlying_price_at_maturity(unsigned int number_of_assets, float *start_prices, float risk_free_rate, float maturity)
+float arithmetic_basket_expected_underlying_price_at_maturity(unsigned int number_of_assets, __global float *start_prices, float risk_free_rate, float maturity)
 {
 	return exp(risk_free_rate * maturity) * arithmetic_basket_start_price(number_of_assets, start_prices);
 }
 
-float arithmetic_basket_geometric_cv_adjusted_strike(unsigned int number_of_assets, float *start_prices, float strike_price, float maturity, float *asset_volatilities, float risk_free_rate, float *correlations)
+float arithmetic_basket_geometric_cv_adjusted_strike(unsigned int number_of_assets, __global float *start_prices, float strike_price, float maturity, __global float *asset_volatilities, float risk_free_rate, __global float *correlations)
 {
 	float geometric_expectation = geometric_basket_expected_underlying_price_at_maturity(number_of_assets, start_prices, maturity, asset_volatilities, risk_free_rate, correlations);
 	float arithmetic_expectation = arithmetic_basket_expected_underlying_price_at_maturity(number_of_assets, start_prices, risk_free_rate, maturity);
@@ -34,7 +34,7 @@ float arithmetic_basket_geometric_cv_adjusted_strike(unsigned int number_of_asse
 	return strike_price + geometric_expectation - arithmetic_expectation;
 }
 
-__kernel void arithmetic_basket_no_cv(unsigned int direction, unsigned int number_of_assets, __global float *start_prices, float strike_price, float maturity, __global float *asset_volatilities, float risk_free_rate, __global float *correlations, __global float *correlations_cholesky, unsigned int total_number_of_paths, __global uint2 *seeds, __global float2 *results)
+__kernel void arithmetic_basket_no_cv(unsigned int direction, unsigned int number_of_assets, __global float *start_prices, float strike_price, float maturity, __global float *asset_volatilities, float risk_free_rate, __global float *correlations, __global float *correlations_cholesky, unsigned int total_number_of_paths, __global uint2 *seeds, __global float *uncorrelated_random_global, __global float *random_global, __global float *drifts_global, __global float2 *results)
 {
 	// get details on worker setup
 	unsigned int tid = get_global_id(0);
@@ -51,7 +51,7 @@ __kernel void arithmetic_basket_no_cv(unsigned int direction, unsigned int numbe
 	stdnormal_float_prng_state float_base_state;
 	initialize_stdnormal_float_prng(&float_base_state, &int_base_state);
 	correlated_stdnormal_float_prng_state prng_state;
-	initialize_correlated_stdnormal_float_prng(&prng_state, &float_base_state, number_of_assets, correlations_cholesky);
+	initialize_correlated_stdnormal_float_prng(&prng_state, &float_base_state, number_of_assets, correlations_cholesky, &(uncorrelated_random_global[tid*number_of_assets]));
 
 	// setup running mean and variance calculation
 	unsigned int statistics_iteration;
@@ -60,13 +60,13 @@ __kernel void arithmetic_basket_no_cv(unsigned int direction, unsigned int numbe
 	initialize_running_variance(&statistics_iteration, &running_mean, &running_m2);
 	
 	// calculate fixed monte carlo parameters
-	float drifts[number_of_assets];
+	__global float *drifts = &(drifts_global[tid*number_of_assets]);
 	for(int asset = 0; asset < number_of_assets; asset++)
 	{
 		drifts[asset] = exp((risk_free_rate - 0.5*asset_volatilities[asset]*asset_volatilities[asset]) * maturity);
 	}
 	float discounting_factor = exp(-risk_free_rate * maturity);
-	float random[number_of_assets];
+	__global float *random = &(random_global[tid*number_of_assets]);
 	float running_mean_sample_factor = 1.0f / (float)number_of_assets;
 
 	for(int path = 0; path < number_of_paths; path++)
@@ -95,7 +95,7 @@ __kernel void arithmetic_basket_no_cv(unsigned int direction, unsigned int numbe
 	results[tid].y = finalize_running_variance(&statistics_iteration, &running_mean, &running_m2);
 }
 
-__kernel void arithmetic_basket_geometric_cv(unsigned int direction, unsigned int number_of_assets, __global float *start_prices, float strike_price, float maturity, __global float *asset_volatilities, float risk_free_rate, __global float *correlations, __global float *correlations_cholesky, unsigned int total_number_of_paths, unsigned int adjust_strike, __global uint2 *seeds, __global float2 *arithmetic_results, __global float2 *geometric_results, __global float *arithmetic_geometric_means)
+__kernel void arithmetic_basket_geometric_cv(unsigned int direction, unsigned int number_of_assets, __global float *start_prices, float strike_price, float maturity, __global float *asset_volatilities, float risk_free_rate, __global float *correlations, __global float *correlations_cholesky, unsigned int total_number_of_paths, unsigned int adjust_strike, __global uint2 *seeds, __global float *uncorrelated_random_global, __global float *random_global, __global float *drifts_global, __global float2 *arithmetic_results, __global float2 *geometric_results, __global float *arithmetic_geometric_means)
 {
 	// get details on worker setup
 	unsigned int tid = get_global_id(0);
@@ -112,7 +112,7 @@ __kernel void arithmetic_basket_geometric_cv(unsigned int direction, unsigned in
 	stdnormal_float_prng_state float_base_state;
 	initialize_stdnormal_float_prng(&float_base_state, &int_base_state);
 	correlated_stdnormal_float_prng_state prng_state;
-	initialize_correlated_stdnormal_float_prng(&prng_state, &float_base_state, number_of_assets, correlations_cholesky);
+	initialize_correlated_stdnormal_float_prng(&prng_state, &float_base_state, number_of_assets, correlations_cholesky, &(uncorrelated_random_global[tid*number_of_assets]));
 
 	// setup running mean and variance calculation
 	unsigned int arithmetic_iterations;
@@ -131,13 +131,13 @@ __kernel void arithmetic_basket_geometric_cv(unsigned int direction, unsigned in
 	initialize_running_variance(&arithmetic_geometric_iterations, &running_arithmetic_geometric_mean, &running_arithmetic_geometric_m2);
 
 	// calculate fixed monte carlo parameters
-	float drifts[number_of_assets];
+	__global float *drifts = &(drifts_global[tid*number_of_assets]);
 	for(int asset = 0; asset < number_of_assets; asset++)
 	{
 		drifts[asset] = exp((risk_free_rate - 0.5*asset_volatilities[asset]*asset_volatilities[asset]) * maturity);
 	}
 	float discounting_factor = exp(-risk_free_rate * maturity);
-	float random[number_of_assets];
+	__global float *random = &(random_global[tid*number_of_assets]);
 	float path_mean_sample_factor = 1.0f / (float)number_of_assets;
 
 	float adjusted_strike_price = (adjust_strike == 0 ? strike_price : arithmetic_basket_geometric_cv_adjusted_strike(number_of_assets, start_prices, strike_price, maturity, asset_volatilities, risk_free_rate, correlations));
