@@ -83,7 +83,7 @@ __kernel void arithmetic_basket_no_cv(unsigned int direction, unsigned int numbe
 		}
 
 		// calculate payoff - save variables...
-		path_mean = (direction == CALL ? max(path_mean - strike_price, 0) : max(strike_price - path_mean, 0));
+		path_mean = (direction == CALL ? max(path_mean - strike_price, 0.0f) : max(strike_price - path_mean, 0.0f));
 		// calculate discounted value
 		path_mean *= discounting_factor;
 
@@ -161,8 +161,8 @@ __kernel void arithmetic_basket_geometric_cv(unsigned int direction, unsigned in
 		path_geometric_mean = exp(path_geometric_mean);
 
 		// calculate payoff - save variables...
-		path_arithmetic_mean = (direction == CALL ? max(path_arithmetic_mean - strike_price, 0) : max(strike_price - path_arithmetic_mean, 0));
-		path_geometric_mean = (direction == CALL ? max(path_geometric_mean - adjusted_strike_price, 0) : max(adjusted_strike_price - path_geometric_mean, 0));
+		path_arithmetic_mean = (direction == CALL ? max(path_arithmetic_mean - strike_price, 0.0f) : max(strike_price - path_arithmetic_mean, 0.0f));
+		path_geometric_mean = (direction == CALL ? max(path_geometric_mean - adjusted_strike_price, 0.0f) : max(adjusted_strike_price - path_geometric_mean, 0.0f));
 
 		// calculate discounted value
 		path_arithmetic_mean *= discounting_factor;
