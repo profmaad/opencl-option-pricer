@@ -104,16 +104,24 @@ int main(int argc, char **argv)
 	float mean;
 	float confidence_interval_lower, confidence_interval_upper;
 
-	option->price(&mean, &confidence_interval_lower, &confidence_interval_upper);
+	bool success = option->price(&mean, &confidence_interval_lower, &confidence_interval_upper);
 	delete option;
 	delete json_helper;
 
-	fprintf(stderr, "\tMean:      %10.5f\n", mean);
-	fprintf(stderr, "\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
-	fprintf(stderr, "\tCI size:   %10.7f\n", confidence_interval_upper-confidence_interval_lower);
-
-	JSONOutputter outputter(mean, confidence_interval_lower, confidence_interval_upper);
-	std::cout << outputter.output() << std::endl;
+	if(success)
+	{
+		fprintf(stderr, "\tMean:      %10.5f\n", mean);
+		fprintf(stderr, "\tCI:      [ %10.7f,\n\t           %10.7f ]\n", confidence_interval_lower, confidence_interval_upper);
+		fprintf(stderr, "\tCI size:   %10.7f\n", confidence_interval_upper-confidence_interval_lower);
+		
+		JSONOutputter outputter(mean, confidence_interval_lower, confidence_interval_upper);
+		std::cout << outputter.output() << std::endl;
+	}
+	else
+	{
+		fprintf(stderr, "Pricing failed\n");
+		std::cout << "{\"success\": false}" << std::endl;
+	}
 
 	return 0;
 }
