@@ -65,9 +65,15 @@ float stdnormal_float_random(stdnormal_float_prng_state *state)
 
 		float r = sqrt(-2.0f * log(u1));
 
+		
 		float cosine;
 		float sine;
 		sincosf(TWO_PI * u2, &sine, &cosine);
+
+		//double cosine_d, sine_d;
+		//sine_d = sincos(TWO_PI * u2, &cosine_d);
+		//sine = (float)sine_d;
+		//cosine = (float)cosine_d;
 
 		state->unused_value = r * sine;
 		state->has_unused_value = true;
