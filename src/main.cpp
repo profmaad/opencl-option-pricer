@@ -19,6 +19,9 @@
 # define DEVICE_NUMBER 0
 # define NUMBER_OF_WORKERS 16
 
+# define FIXED_SRAND_SEED 0xCAFE2342
+# define USE_FIXED_SEEDS true
+
 JSONHelper* read_json_from_stdin()
 {
 	std::stringstream json_source;
@@ -65,7 +68,23 @@ int main(int argc, char **argv)
 	}
 
 	option->set_opencl_configuration(context, device_number, number_of_workers);
-	option->reset_random_seeds();
+
+	// generate fixed random seeds based on fixed srand seed given above
+	if(USE_FIXED_SEEDS)
+	{
+		random_seed fixed_seeds[number_of_workers];
+		srand(FIXED_SRAND_SEED);
+		for(int i = 0; i < number_of_workers; i++)
+		{
+			fixed_seeds[i].x = rand();
+			fixed_seeds[i].y = rand();
+		}
+		option->set_random_seeds(fixed_seeds);
+	}
+	else
+	{
+		option->reset_random_seeds();
+	}
 
 	float mean;
 	float confidence_interval_lower, confidence_interval_upper;
