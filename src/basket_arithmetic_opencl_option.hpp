@@ -34,6 +34,9 @@ protected:
 	cl_float *cl_asset_volatilities;
 	cl_float *cl_correlations;
 	cl_float *cl_correlations_cholesky;
+	cl_float *cl_uncorrelated_random;
+	cl_float *cl_random;
+	cl_float *cl_drifts;
 };
 
 # endif /*OCLOP_BASKET_ARITHMETIC_OPENCL_OPTION_HPP*/

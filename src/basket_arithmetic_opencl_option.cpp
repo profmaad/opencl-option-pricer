@@ -15,7 +15,10 @@ BasketArithmeticOpenCLOption::BasketArithmeticOpenCLOption(JSONHelper &parameter
 										     cl_start_prices(NULL),
 										     cl_asset_volatilities(NULL),
 										     cl_correlations(NULL),
-										     cl_correlations_cholesky(NULL)
+										     cl_correlations_cholesky(NULL),
+										     cl_uncorrelated_random(NULL),
+										     cl_random(NULL),
+										     cl_drifts(NULL)
 {	
 	unsigned int tmp_size;
 
@@ -67,6 +70,9 @@ BasketArithmeticOpenCLOption::~BasketArithmeticOpenCLOption()
 	if(cl_asset_volatilities) { clfree(cl_asset_volatilities); }
 	if(cl_correlations) { clfree(cl_correlations); }
 	if(cl_correlations_cholesky) { clfree(cl_correlations_cholesky); }
+	if(cl_uncorrelated_random) { clfree(cl_uncorrelated_random); }
+	if(cl_random) { clfree(cl_random); }
+	if(cl_drifts) { clfree(cl_drifts); }
 }
 
 const char* BasketArithmeticOpenCLOption::kernel_symbol()
@@ -80,21 +86,33 @@ void BasketArithmeticOpenCLOption::setup_inputs()
 	if(cl_asset_volatilities) { clfree(cl_asset_volatilities); }
 	if(cl_correlations) { clfree(cl_correlations); }
 	if(cl_correlations_cholesky) { clfree(cl_correlations_cholesky); }
+	if(cl_uncorrelated_random) { clfree(cl_uncorrelated_random); }
+	if(cl_random) { clfree(cl_random); }
+	if(cl_drifts) { clfree(cl_drifts); }
 
 	cl_start_prices = opencl_memcpy<cl_float, float>(context, number_of_assets, start_prices);
 	cl_asset_volatilities = opencl_memcpy<cl_float, float>(context, number_of_assets, asset_volatilities);
 	cl_correlations = opencl_memcpy<cl_float, float>(context, number_of_assets*number_of_assets, correlations);
 	cl_correlations_cholesky = opencl_memcpy<cl_float, float>(context, number_of_assets*number_of_assets, correlations_cholesky);
+	cl_uncorrelated_random = (cl_float*)clmalloc(context, number_of_assets*number_of_workers*sizeof(cl_float), 0);
+	cl_random = (cl_float*)clmalloc(context, number_of_assets*number_of_workers*sizeof(cl_float), 0);
+	cl_drifts = (cl_float*)clmalloc(context, number_of_assets*number_of_workers*sizeof(cl_float), 0);
 
 	assert(cl_start_prices != NULL);
 	assert(cl_asset_volatilities != NULL);
 	assert(cl_correlations != NULL);
 	assert(cl_correlations_cholesky != NULL);
+	assert(cl_uncorrelated_random != NULL);
+	assert(cl_random != NULL);
+	assert(cl_drifts != NULL);
 
 	clmsync(context, device_number, cl_start_prices, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 	clmsync(context, device_number, cl_asset_volatilities, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 	clmsync(context, device_number, cl_correlations, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 	clmsync(context, device_number, cl_correlations_cholesky, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+	clmsync(context, device_number, cl_uncorrelated_random, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+	clmsync(context, device_number, cl_random, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
+	clmsync(context, device_number, cl_drifts, CL_MEM_DEVICE|CL_EVENT_NOWAIT);
 }
 
 void BasketArithmeticOpenCLOption::fork_kernel(cl_kernel kernel)
@@ -103,16 +121,19 @@ void BasketArithmeticOpenCLOption::fork_kernel(cl_kernel kernel)
 	assert(cl_asset_volatilities != NULL);
 	assert(cl_correlations != NULL);
 	assert(cl_correlations_cholesky != NULL);
+	assert(cl_uncorrelated_random != NULL);
+	assert(cl_random != NULL);
+	assert(cl_drifts != NULL);
 
 	clndrange_t index_range = clndrange_init1d(0, number_of_workers, number_of_workers);
 
 	if(use_control_variate())
 	{
-		clforka(context, device_number, kernel, &index_range, CL_EVENT_NOWAIT, direction, number_of_assets, cl_start_prices, strike_price, maturity, cl_asset_volatilities, risk_free_rate, cl_correlations, cl_correlations_cholesky, number_of_paths, use_adjusted_strike(), seeds, arithmetic_results, geometric_results, arithmetic_geometric_means);
+		clforka(context, device_number, kernel, &index_range, CL_EVENT_NOWAIT, direction, number_of_assets, cl_start_prices, strike_price, maturity, cl_asset_volatilities, risk_free_rate, cl_correlations, cl_correlations_cholesky, number_of_paths, use_adjusted_strike(), seeds, cl_uncorrelated_random, cl_random, cl_drifts, arithmetic_results, geometric_results, arithmetic_geometric_means);
 	}
 	else
 	{
-		clforka(context, device_number, kernel, &index_range, CL_EVENT_NOWAIT, direction, number_of_assets, cl_start_prices, strike_price, maturity, cl_asset_volatilities, risk_free_rate, cl_correlations, cl_correlations_cholesky, number_of_paths, seeds, arithmetic_results);
+		clforka(context, device_number, kernel, &index_range, CL_EVENT_NOWAIT, direction, number_of_assets, cl_start_prices, strike_price, maturity, cl_asset_volatilities, risk_free_rate, cl_correlations, cl_correlations_cholesky, number_of_paths, seeds, cl_uncorrelated_random, cl_random, cl_drifts, arithmetic_results);
 	}
 }
 
@@ -122,9 +143,15 @@ void BasketArithmeticOpenCLOption::cleanup()
 	if(cl_asset_volatilities) { clfree(cl_asset_volatilities); }
 	if(cl_correlations) { clfree(cl_correlations); }
 	if(cl_correlations_cholesky) { clfree(cl_correlations_cholesky); }
+	if(cl_uncorrelated_random) { clfree(cl_uncorrelated_random); }
+	if(cl_random) { clfree(cl_random); }
+	if(cl_drifts) { clfree(cl_drifts); }
 
 	cl_start_prices = NULL;
 	cl_asset_volatilities = NULL;
 	cl_correlations = NULL;
 	cl_correlations_cholesky = NULL;
+	cl_uncorrelated_random = NULL;
+	cl_random = NULL;
+	cl_drifts = NULL;
 }
