@@ -1,0 +1,18 @@
+{
+    "type": "basket_arithmetic",
+    "direction": "call",
+    "control_variate": "none",
+    
+    "start_price": [100, 100],
+    "strike_price": 120,
+    "maturity": 3,
+    "volatility": [0.3, 0.3],
+    "risk_free_rate": 0.05,
+    "correlation": [ [1.0, 0.5], [0.5, 1.0] ],
+    "samples": 10000,
+
+    "expected": {
+	"mean": 16.3823,
+	"delta": 2.0
+    }
+}
