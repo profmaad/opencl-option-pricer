@@ -6,7 +6,6 @@ require 'csv'
 require 'pp'
 
 PRICER_BINARY = File.expand_path('../build/opencl_option_pricer')
-DELTA = 1e-3
 SAMPLES = {:none => [10000, 100000, 1000000], :geometric => [10000, 100000, 1000000]}
 
 def run_pricer(input_parameters)
@@ -79,11 +78,6 @@ stats = {
 
 @max_filename_length = @tests.map {|filename| filename.length - @test_dir.length - 1}.max
 
-if(@csv_file)
-  @csv = CSV.open(@csv_file, 'wb')
-  @csv << ['Type', 'Direction', 'Control Variate', 'Strike Price', 'Volatility', 'Correlation', 'Averaging Steps', 'Price']
-end
-
 @tests.each do |test_filename|
   pretty_test_filename = test_filename.slice(@test_dir.length+1..-1)
 
@@ -102,14 +96,6 @@ end
   result = run_convergence_test(input_parameters, SAMPLES)
 
   stats[(result ? :passed : :failed)] += 1
-
-  # if(@csv)
-  #   line = test_case_to_csv(input_parameters)
-  #   mean_string = '%g' % ('%.05f' % mean)
-  #   line << mean_string
-
-  #   @csv << line
-  # end
 end
 exit 0
 
@@ -118,9 +104,4 @@ if(stats[:failed] == 0)
   puts "All tests passed!"
 else
   puts "Failed test cases: #{stats[:failed]}/#{stats[:tests]}"
-end
-
-if(@csv)
-  @csv.close
-  puts "CSV written to #{@csv_file}"
 end
