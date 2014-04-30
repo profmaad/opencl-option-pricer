@@ -1,0 +1,21 @@
+{
+    "type": "basket_arithmetic",
+    "direction": "put",
+    "control_variate": "geometric",
+    
+    "start_price": [100, 100, 100, 100],
+    "strike_price": 100,
+    "maturity": 3,
+    "volatility": [0.3, 0.3, 0.3, 0.3],
+    "risk_free_rate": 0.05,
+    "correlation": [ [1.0, 0.8, 0.5, 0.3],
+		     [0.8, 1.0, 0.4, 0.2],
+		     [0.5, 0.4, 1.0, 0.1],
+		     [0.3, 0.2, 0.1, 1.0] ],
+    "samples": 10000,
+
+    "expected": {
+	"mean": 8.2411,
+	"delta": 0.5
+    }
+}
