@@ -4,7 +4,7 @@ require 'json'
 require 'open3'
 require 'csv'
 
-PRICER_BINARY = File.expand_path('../build/opencl_option_pricer')
+PRICER_BINARY = File.expand_path(__FILE__ + '/../../build/opencl_option_pricer')
 DELTA = 1e-3
 
 def run_test_case(input_parameters, expected_output)

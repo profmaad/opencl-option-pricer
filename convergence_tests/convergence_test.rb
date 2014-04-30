@@ -5,7 +5,7 @@ require 'open3'
 require 'csv'
 require 'pp'
 
-PRICER_BINARY = File.expand_path('../build/opencl_option_pricer')
+PRICER_BINARY = File.expand_path(__FILE__ + '/../../build/opencl_option_pricer')
 SAMPLES = {:none => [10000, 100000, 1000000], :geometric => [10000, 100000, 1000000]}
 
 def run_pricer(input_parameters)
